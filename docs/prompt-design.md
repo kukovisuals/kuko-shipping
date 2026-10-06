@@ -86,7 +86,7 @@ is left open.
 | `{DATA_SOURCE}` | Demo seed built from §3a + CSV import. No Shopify sync: M9 is skipped. |
 | `{TRACKING_SOURCE}` | Seeded status events (§3a), plus events entered by hand or by CSV. No carrier-tracking API. |
 | `{CARGO}` | A plain box truck (cargo box + cab, no wheels or logos) per warehouse + state + ship day, coloured by its worst order's delay status, with an order-count badge. |
-| `{ART_DIRECTION}` | Night neon: deep navy sea, dark voxel land, cyan routes, neon pink accent, bloom on emissive parts only. Cubes and thin lines. No gradients or rounded corners. |
+| `{ART_DIRECTION}` | Clean and calm: the US as one solid raised slab (no grid, no voxels) with thin state borders, blue / amber / red status, donut region rings with a big number, rounded cards with soft shadows, round status dots, rounded bars. Smooth sans type (Inter), small mono uppercase labels. A Dark / Light toggle (saved in a cookie) recolours the same design: Light = white land on a pale blue-grey sea, white cards, no bloom; Dark = slate land on a near-black sea, slate cards, faint bloom. Same layout, same pieces, same fonts in both. The region panel can be hidden to a small "On-time rate" button. |
 | `{SIGN_IN}` | Email + password through Supabase Auth. Confirmed emails only. Members of the company only. |
 | `{LEAVE_OUT}` | Payments, customer notifications, returns flow, route optimisation, demand forecasting, AI features, a multi-company UI, live carrier sync, subscription management, any real brand artwork. |
 
@@ -237,9 +237,9 @@ vitest 3 + jsdom + @testing-library/react    @vercel/analytics
 Hosting: Vercel (staging branch → staging site, main → production)
 Database, auth: Supabase (two projects: staging and production)
 Email: Resend over SMTP from Supabase Auth.
-Fonts (self-hosted in public/fonts): Silkscreen (titles/buttons), Space Grotesk (body, tables).
+Fonts (self-hosted in public/fonts): Inter (everything); labels use the system monospace.
 Land map: Natural Earth 1:50m admin-1 states (public domain), lower 48 + DC, baked once into
-public/map/us.json (0.25° land grid + simplified state outlines).
+public/map/us.json (0.25° land grid for tests + simplified state outlines, extruded into the land slab).
 ```
 
 `package.json` scripts:
@@ -492,9 +492,18 @@ to 20°–70°), `Atmosphere`, `Effects`.
 - **Trucks** (`domain/ship/trucks.ts`): group orders by warehouse + state + **UTC ship day**; an
   unshipped order rides its state's **loading** truck. A truck's status is the worst of its open
   orders (`late` > `at_risk` > `on_time`); once all its orders are delivered it is not drawn.
-- **Route**: a straight ground line from the warehouse to the state's anchor (`domain/map/route.ts`).
-  Routes stay inside the lower 48, so there is no date-line case.
-- One road line per state with a truck on it. One pin per state (open orders + deliveries in the
+- **Route**: a gentle ground curve (quadratic Bézier, bend `MAP.routeBend` = 8 % of the chord)
+  from the warehouse to the state's anchor, bowing south-west so it stays over the interior
+  (`domain/map/route.ts`). A truck faces along the curve at its progress point. Routes stay inside
+  the lower 48, so there is no date-line case.
+- **Regions** (`domain/map/regions.ts`): the four US Census regions — West, Midwest, South,
+  Northeast (DC is South). `domain/ship/regions.ts` sums each region's open orders by status, its
+  on-time rate (`on_time / open`, none when nothing is open) and its problem trucks (late by days
+  late, then at risk, then biggest load).
+- The map draws trucks for **one region at a time**. Closed regions show a ring instead; opening
+  a region (its ring or its panel card) draws its trucks, roads, pins, dock and callouts. Escape
+  closes the truck card, then the region.
+- One road line per state with a truck on it (in the open region). One pin per state (open orders + deliveries in the
   last 7 days), height on a log scale.
 - Loading trucks park on a **dock** pad over the sea beside the warehouse (`MAP_CONFIG.yard`), with
   one "Loading · N orders" label instead of a badge each.
@@ -529,16 +538,19 @@ to 20°–70°), `Atmosphere`, `Effects`.
 
 | Piece | How |
 |-------|-----|
-| Sea + land | Dark floor; voxel US land from `us.json` as one instanced mesh; neon state borders |
+| Sea + land | Sea floor; the state outlines from `us.json` extruded into one solid slab (`MAP.landHeight`, side walls in `solidShade`); thin state borders |
 | Warehouse | A box tower at its lat/lng; height from total units on hand (log scale, 2–10 units); a ring at its base turns amber when any variant there is low, red when any is out |
-| Roads | One faint straight line per state with a truck on the road |
-| Trucks | Two **instanced** meshes (cargo box in the status colour, plain cab); `on_time` cyan, `at_risk` amber, `late` red; late trucks pulse (M8) |
+| Region rings | One per closed region at `REGION_HUB`, facing the camera: a donut of its open orders split on time / at risk / late, the count in the middle, the region name above, "All on time" or "N trucks need a look" below. Click to open. Shrink to 55 % while another region is open |
+| Roads | One curved line per state with a truck on the road in the open region, in its worst truck's status colour |
+| Callouts | "Denver · 3d late" over the anchor city of each state with a late or at-risk truck in the open region, worst first, at most 8 |
+| Trucks | Two **instanced** meshes (cargo box in the status colour, plain cab); `on_time` blue, `at_risk` amber, `late` red; late trucks pulse (M8) |
 | Badges | drei `Text` with the order count over the biggest loads on the road (≥ 10 orders, at most 40) and over the hovered or picked truck |
 | Dock | A pad off the coast where loading trucks park, labelled with the orders waiting |
 | Destination pins | One thin post per state; height by count (log) |
 | Labels | drei `Text` with the self-hosted font: warehouse name, badges, dock |
-| Legend | Small 2D overlay: trucks on the road and loading, order counts per status, "truck colour = its worst order", "Truck positions are estimates" |
-| Bloom | `EffectComposer` + `Bloom` (threshold 1, intensity 1.1, mipmap blur) on emissive parts only |
+| Legend | One line at the bottom (top on phones): each status colour with its order count, trucks on the road and loading, "truck colour = its worst order · positions are estimates". No other info card: the region panel is the only panel |
+| Region panel | 2D overlay (right on desktop, bottom on phones): "On-time rate · click to open", one card per region with its rate, a stacked status bar and "3 late · 2 at risk · 7 on time"; the open region lists its problem trucks (city, ship day, "3d late" / "at risk"); picking one opens its truck card |
+| Bloom | `EffectComposer` + `Bloom` (threshold 1, intensity 1.1, mipmap blur) on emissive parts only — Dark look only |
 
 Hovering a truck shows a read-out: state, order count, ship day, "2 of 50 late · 1 at risk ·
 12 delivered". Clicking it opens the **truck card**: the same header plus its orders, worst first.

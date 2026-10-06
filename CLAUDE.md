@@ -1,7 +1,8 @@
 # CLAUDE.md — Cargo Atlas
 
-A private 3D map of the US (lower 48 + DC) for one e-commerce company: warehouses, and trucks
-carrying each day's orders to each state, coloured by their worst order's delay status, an Alerts panel for late/at-risk shipments, and a stock
+A private 3D map of the US (lower 48 + DC) for one e-commerce company: warehouses, a ring per Census
+region, and — for the region you open — trucks carrying each day's orders to each state, coloured by
+their worst order's delay status, an Alerts panel for late/at-risk shipments, and a stock
 table per product variant per warehouse. Desktop first, works at 375 px.
 
 **This build is a concept demo for Death Wish Coffee. All brand data is simulated.** Brand name as
@@ -32,7 +33,8 @@ Commit messages start with the milestone/ticket id (e.g. `M3: seed demo data`).
 - Supabase (supabase-js 2.117, @supabase/ssr 0.12) — two projects: staging and production
 - Tailwind 4 (@tailwindcss/postcss), ESLint 9 + eslint-config-next 16
 - Vitest 3 + jsdom + Testing Library; Vercel hosting + @vercel/analytics; Resend SMTP for auth email
-- Fonts self-hosted in `public/fonts`: Silkscreen (titles/buttons), Space Grotesk (body/tables)
+- Fonts self-hosted in `public/fonts`: Inter for everything (smooth, no pixel fonts); `.ui-label` uses the
+  system monospace. 3D labels use `inter-latin-600-normal.woff` — troika reads ttf/otf/woff, **not woff2**
 - `@/*` → `./*` (no `src/`). Vitest: `environment: "node"`; component tests add
   `// @vitest-environment jsdom` at the top.
 
@@ -114,9 +116,12 @@ app → features → engine | platform | ui | config → domain
 
 ## Domain rules (tested in `domain/`)
 
-- **Map:** 1 scene unit = 1°. `x = lng`, `z = −lat`, Y up. US only: lower 48 + DC, 0.25° land grid,
+- **Map:** 1 scene unit = 1°. `x = lng`, `z = −lat`, Y up. US only: lower 48 + DC, land drawn as one solid slab extruded from the state outlines (no grid; the 0.25° grid is only for tests),
   one anchor city per state (`domain/map/usStates.ts`; a test keeps every anchor on land). Routes are
-  straight ground lines warehouse → anchor. One pin per state. Sizes live in `MAP`.
+  ground curves warehouse → anchor bowing south-west (`MAP.routeBend`). One pin per state. Sizes live in `MAP`.
+- **Regions** (`domain/map/regions.ts`, `domain/ship/regions.ts`): the 4 Census regions. The map draws
+  trucks for **one open region at a time**; closed regions are rings of open orders by status, and
+  the region panel shows each region's on-time rate and lists the open region's problem trucks.
 - **Trucks** (`domain/ship/trucks.ts`): one per warehouse + state + UTC ship day; unshipped orders
   ride the state's loading truck on the dock. Colour = worst open order (late > at_risk > on_time);
   a truck with no open orders is not drawn. Demo delays come by truck, never sprinkled per order.
@@ -143,7 +148,16 @@ app → features → engine | platform | ui | config → domain
   refs use `useEffectEvent`.
 - Use drei `Text` with the self-hosted font, not drei `Html` (React 19 unmount error).
 - Seed every random value drawn on both server and browser, or hydration differs.
-- Status colours: `on_time` cyan, `at_risk` amber, `late` red, `delivered_late` dim red — from the theme.
+- Status colours: `on_time` blue, `at_risk` amber, `late` red, `delivered_late` dim red — from the theme.
+- **Two looks, one design**: a Dark / Light toggle in the region panel, saved in the `look` cookie
+  (read on the server, set on `<html data-theme>`). Both looks draw the same scene and panels — only
+  colours change; never give one look its own layout or pieces. `ui/theme.ts` has `THEME` (dark) and
+  `LIGHT_THEME` with the same tokens; `tokens.css` mirrors both (`@theme static` +
+  `[data-theme="light"]`). Engine pieces read colours from `usePalette()`, never `THEME`; HTML overlays
+  use `cssVar(token)`. Light has no bloom and no tone mapping (set in `Atmosphere`).
+- Only one information panel (the region panel, right), which can be hidden to an "On-time rate" button;
+  the legend is a single line at the bottom.
+- Style follows the clean reference: solid land slab, donut rings, rounded cards, soft shadows, round dots.
 - Trucks are plain boxes (cargo + cab), no wheels or logos.
 
 ## Testing

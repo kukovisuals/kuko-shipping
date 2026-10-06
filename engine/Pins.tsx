@@ -2,12 +2,13 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { Object3D, type InstancedMesh } from "three";
 import { project, type LatLng } from "@/domain/map/project";
 import { pinHeight } from "@/domain/map/scale";
-import { glow } from "@/engine/colors";
+import { usePalette } from "@/engine/palette";
 
 /** A thin post at each destination; taller for more shipments. */
 export function Pins({ pins }: { pins: readonly (LatLng & { count: number })[] }) {
   const ref = useRef<InstancedMesh>(null);
-  const color = useMemo(() => glow("neon", 1.05), []);
+  const { glow } = usePalette();
+  const color = useMemo(() => glow("neon", 1.05), [glow]);
 
   useLayoutEffect(() => {
     const mesh = ref.current;

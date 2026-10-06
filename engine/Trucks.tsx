@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { BoxGeometry, Object3D, type BufferGeometry, type Color, type InstancedMesh } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Vec3 } from "@/domain/map/project";
-import { THEME } from "@/ui/theme";
+import { usePalette } from "@/engine/palette";
 
 // A box truck, nose along +X: a cargo box in the status colour and a plain cab. No wheels, no logos.
 export const TRUCK = { length: 0.8, width: 0.32, height: 0.34, cabLength: 0.24, clearance: 0.16 } as const;
@@ -31,6 +31,7 @@ export function Trucks({
   onHover?: (index: number | null) => void;
   onSelect?: (index: number) => void;
 }) {
+  const { colors } = usePalette();
   const cargoRef = useRef<InstancedMesh>(null);
   const cabRef = useRef<InstancedMesh>(null);
   const geometry = useMemo(() => parts(), []);
@@ -77,7 +78,7 @@ export function Trucks({
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
       <instancedMesh key={`cab-${trucks.length}`} ref={cabRef} args={[geometry.cab, undefined, trucks.length]} {...handlers}>
-        <meshStandardMaterial color={THEME.botBone} />
+        <meshStandardMaterial color={colors.botBone} />
       </instancedMesh>
     </group>
   );

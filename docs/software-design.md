@@ -55,9 +55,10 @@ keeps them equal. Delay-status colours: `statusOnTime`, `statusAtRisk`, `statusL
 
 ## Fonts
 
-Silkscreen (titles, buttons) and Space Grotesk (body, tables), latin subset, self-hosted in
-`public/fonts` (SIL OFL 1.1, licence files alongside) and loaded with `next/font/local` in
-`app/layout.tsx` as `--font-silkscreen` / `--font-space-grotesk`.
+Inter 400/500/600/700, latin subset, self-hosted in `public/fonts` (SIL OFL 1.1, licence file
+alongside) and loaded with `next/font/local` in `app/layout.tsx` as `--font-inter`. Small uppercase
+labels (`.ui-label`) use the system monospace (`--font-mono`). 3D text uses
+`inter-latin-600-normal.woff` (troika can't read woff2).
 
 ## Decision log
 

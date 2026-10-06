@@ -1,18 +1,18 @@
 import { DELAY_STATUS_LABEL } from "@/domain/ship/status";
 import { STATUS_TOKEN } from "@/engine/colors";
-import { THEME } from "@/ui/theme";
+import { cssVar } from "@/ui/theme";
 import { truckLeg, truckSummary, truckTitle } from "./loadText";
 import type { MapOrder, MapTruck } from "./model";
 import { ShipmentDetail } from "./ShipmentDetail";
 
-const CARD = "ui-card absolute bottom-14 left-3 w-[min(22rem,calc(100%-1.5rem))] p-3 text-sm";
+const CARD = "ui-card absolute bottom-14 left-3 w-[min(22rem,calc(100%-1.5rem))] p-4 text-sm";
 
 function Header({ truck }: { truck: MapTruck }) {
   return (
     <>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="font-pixel text-ink">{truckTitle(truck)}</span>
-        <span className="font-pixel text-xs" style={{ color: THEME[STATUS_TOKEN[truck.status]] }}>
+        <span className="font-semibold text-ink">{truckTitle(truck)}</span>
+        <span className="font-semibold text-xs" style={{ color: cssVar(STATUS_TOKEN[truck.status]) }}>
           {DELAY_STATUS_LABEL[truck.status]}
         </span>
       </div>
@@ -50,7 +50,7 @@ export function TruckCard({
         <div className="min-w-0 flex-1">
           <Header truck={truck} />
         </div>
-        <button type="button" onClick={onClose} className="ui-label px-1 hover:text-ink" aria-label="Close">
+        <button type="button" onClick={onClose} className="ui-label ui-hover rounded-md px-1.5 py-1 hover:text-ink" aria-label="Close">
           ✕
         </button>
       </div>
@@ -69,9 +69,9 @@ export function TruckCard({
               <button
                 type="button"
                 onClick={() => onOrder(o.id)}
-                className="flex w-full items-baseline gap-2 px-1 py-1 text-left hover:bg-body"
+                className="ui-hover flex w-full items-center gap-2 rounded-md px-1 py-1 text-left"
               >
-                <span aria-hidden className="inline-block size-2 shrink-0" style={{ background: THEME[STATUS_TOKEN[o.delay.status]] }} />
+                <span aria-hidden className="inline-block size-2 shrink-0 rounded-full" style={{ background: cssVar(STATUS_TOKEN[o.delay.status]) }} />
                 <span className="text-ink tabular-nums">{o.orderNumber}</span>
                 <span className="ml-auto truncate pl-2 text-xs text-muted">
                   {o.deliveredAt === null ? o.delay.reason : "delivered"}

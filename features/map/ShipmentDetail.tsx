@@ -3,7 +3,7 @@ import { DELAY_STATUS_LABEL, SHIPMENT_STATUS_LABEL } from "@/domain/ship/status"
 import { summarizeEvents } from "@/domain/ship/events";
 import { describeDuration, localDate } from "@/domain/time";
 import { STATUS_TOKEN } from "@/engine/colors";
-import { THEME } from "@/ui/theme";
+import { cssVar } from "@/ui/theme";
 import type { MapOrder } from "./model";
 
 /** One order on a truck. The full shipment card with the timeline comes in M6. */
@@ -14,8 +14,8 @@ export function ShipmentDetail({ order }: { order: MapOrder }) {
   return (
     <div className="text-sm">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="font-pixel text-ink">{order.orderNumber}</span>
-        <span className="font-pixel text-xs" style={{ color: THEME[STATUS_TOKEN[delay.status]] }}>
+        <span className="font-semibold text-ink">{order.orderNumber}</span>
+        <span className="font-semibold text-xs" style={{ color: cssVar(STATUS_TOKEN[delay.status]) }}>
           {DELAY_STATUS_LABEL[delay.status]}
           {delay.daysLate > 0 && ` · ${delay.daysLate} d`}
         </span>

@@ -1,40 +1,37 @@
-import { useLayoutEffect, useRef } from "react";
-import { Object3D, type InstancedMesh } from "three";
-import { MAP, project, type LatLng } from "@/domain/map/project";
-import { THEME } from "@/ui/theme";
+import { useEffect, useMemo } from "react";
+import { ExtrudeGeometry, MeshStandardMaterial, Shape, Vector2 } from "three";
+import { MAP } from "@/domain/map/project";
+import { usePalette } from "@/engine/palette";
 
 type Bounds = { west: number; east: number; south: number; north: number };
+type Ring = readonly (readonly [number, number])[];
 
-/** Sea floor plus one instanced box per land cell. */
-export function Land({ cells, cellDeg, bounds }: { cells: readonly LatLng[]; cellDeg: number; bounds: Bounds }) {
-  const ref = useRef<InstancedMesh>(null);
+/** Sea floor plus the land as one solid slab: every state outline extruded `MAP.landHeight` up.
+ * Neighbouring states share a flat top, so the map reads as one clean surface; borders are lines. */
+export function Land({ outlines, bounds }: { outlines: readonly Ring[]; bounds: Bounds }) {
+  const { colors } = usePalette();
+  const geometry = useMemo(() => {
+    const shapes = outlines.map((ring) => new Shape(ring.map(([lng, lat]) => new Vector2(lng, lat))));
+    // Shapes live in (lng, lat); turning −90° about X puts lat on −Z and the extrusion on +Y.
+    return new ExtrudeGeometry(shapes, { depth: MAP.landHeight, bevelEnabled: false }).rotateX(-Math.PI / 2);
+  }, [outlines]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  // ExtrudeGeometry's groups: 0 = top and bottom caps, 1 = side walls. The walls take the shade
+  // colour so the slab's edge reads in both looks without shadows.
+  const materials = useMemo(
+    () => [new MeshStandardMaterial({ color: colors.land }), new MeshStandardMaterial({ color: colors.solidShade })],
+    [colors],
+  );
+  useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
 
-  useLayoutEffect(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-    const o = new Object3D();
-    cells.forEach((cell, i) => {
-      const p = project(cell, MAP.landCellHeight / 2);
-      o.position.set(p.x, p.y, p.z);
-      o.updateMatrix();
-      mesh.setMatrixAt(i, o.matrix);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.computeBoundingSphere();
-  }, [cells]);
-
-  const size = cellDeg * MAP.landCellFill;
   const sea = 160; // floor reaches past the fog in every direction
   return (
     <group>
       <mesh rotation-x={-Math.PI / 2} position={[(bounds.west + bounds.east) / 2, -0.02, -(bounds.south + bounds.north) / 2]}>
         <planeGeometry args={[bounds.east - bounds.west + sea, bounds.north - bounds.south + sea]} />
-        <meshStandardMaterial color={THEME.ground} />
+        <meshStandardMaterial color={colors.ground} />
       </mesh>
-      <instancedMesh key={cells.length} ref={ref} args={[undefined, undefined, cells.length]}>
-        <boxGeometry args={[size, MAP.landCellHeight, size]} />
-        <meshStandardMaterial color={THEME.body} />
-      </instancedMesh>
+      <mesh geometry={geometry} material={materials} />
     </group>
   );
 }

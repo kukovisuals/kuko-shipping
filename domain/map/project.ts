@@ -2,9 +2,10 @@
 export const MAP = {
   width: 360,
   height: 180,
-  /** A land box covers this share of its grid cell, leaving a thin gap between boxes. */
-  landCellFill: 0.9,
-  landCellHeight: 0.12,
+  /** Thickness of the raised land slab; trucks, roads and borders sit on its top. */
+  landHeight: 0.45,
+  /** How far a route bows off its chord, as a share of the chord's length. */
+  routeBend: 0.08,
 } as const;
 
 export type LatLng = { lat: number; lng: number };

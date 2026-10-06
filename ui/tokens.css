@@ -1,25 +1,25 @@
 /* Design tokens and shared UI classes; palette must match ui/theme.ts. */
 
-@theme {
-  --color-background: #07081a;
-  --color-surface: #12143a;
-  --color-ground: #0d0f2b;
-  --color-floor: #110b2c;
-  --color-body: #1a1d4a;
-  --color-line: #2c3070;
-  --color-road: #14173d;
-  --color-accent: #ff2e97;
-  --color-flow: #22d3ee;
-  --color-neon: #c43cff;
-  --color-open: #39ff88;
-  --color-open-building: #158240;
-  --color-pending: #b15cff;
-  --color-sold: #4f7cff;
-  --color-fun: #ffb020;
-  --color-party: #ff4fd8;
-  --color-solid-top: #4a3a78;
-  --color-solid-side: #2e2552;
-  --color-solid-shade: #1d1838;
+@theme static {
+  --color-background: #0f131c;
+  --color-surface: #171c28;
+  --color-ground: #131824;
+  --color-floor: #1c2230;
+  --color-body: #252c3b;
+  --color-line: #283043;
+  --color-road: #1f2533;
+  --color-accent: #5b8def;
+  --color-flow: #5b8def;
+  --color-neon: #3b445a;
+  --color-open: #3fbf7f;
+  --color-open-building: #2f9663;
+  --color-pending: #9b7ae0;
+  --color-sold: #5b8def;
+  --color-fun: #f0a640;
+  --color-party: #d968c0;
+  --color-solid-top: #2c3447;
+  --color-solid-side: #262d3e;
+  --color-solid-shade: #1b2130;
   --color-bot-navy: #232f58;
   --color-bot-dusk: #1e1a35;
   --color-bot-bone: #cdc7e6;
@@ -27,20 +27,60 @@
   --color-bot-mint: #3fcf98;
   --color-bot-pink: #d34db6;
   --color-bot-cyan: #36bfd6;
-  --color-ink: #e8ecff;
-  --color-muted: #8a90c0;
-  --color-danger: #ff4d4d;
-  --color-status-on-time: #22d3ee;
-  --color-status-at-risk: #ffb020;
-  --color-status-late: #ff3b4f;
-  --color-status-delivered-late: #8c2f45;
+  --color-ink: #e8ebf1;
+  --color-muted: #8b93a6;
+  --color-danger: #ef5b5b;
+  --color-status-on-time: #5b8def;
+  --color-status-at-risk: #f0a640;
+  --color-status-late: #ef5b5b;
+  --color-status-delivered-late: #8f4a4f;
+  --color-land: #262d3e;
 
-  --font-pixel: var(--font-silkscreen), ui-monospace, monospace;
-  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 html {
   color-scheme: dark;
+}
+
+/* Light look: same layout, recoloured; must match LIGHT_THEME in ui/theme.ts. */
+[data-theme="light"] {
+  --color-background: #eef1f6;
+  --color-surface: #ffffff;
+  --color-ground: #e4e8f0;
+  --color-floor: #f3f5f9;
+  --color-body: #e9edf3;
+  --color-line: #e6e9ef;
+  --color-road: #e1e6ee;
+  --color-accent: #3f6fd8;
+  --color-flow: #3f6fd8;
+  --color-neon: #c5ccd8;
+  --color-open: #2e9e5b;
+  --color-open-building: #2e9e5b;
+  --color-pending: #8a5cd6;
+  --color-sold: #3f6fd8;
+  --color-fun: #e5a23a;
+  --color-party: #d34db6;
+  --color-solid-top: #ffffff;
+  --color-solid-side: #ffffff;
+  --color-solid-shade: #dfe4ec;
+  --color-bot-navy: #232f58;
+  --color-bot-dusk: #1e1a35;
+  --color-bot-bone: #ffffff;
+  --color-bot-plum: #4f2662;
+  --color-bot-mint: #3fcf98;
+  --color-bot-pink: #d34db6;
+  --color-bot-cyan: #36bfd6;
+  --color-ink: #1a1e26;
+  --color-muted: #5f6673;
+  --color-danger: #db4c4c;
+  --color-status-on-time: #3f6fd8;
+  --color-status-at-risk: #e5a23a;
+  --color-status-late: #db4c4c;
+  --color-status-delivered-late: #d2918b;
+  --color-land: #ffffff;
+  color-scheme: light;
 }
 
 body {
@@ -51,31 +91,55 @@ body {
 
 @layer components {
   .ui-card {
-    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+    border-radius: 1rem;
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--color-background) 30%, transparent),
+      0 12px 32px color-mix(in srgb, #0b1020 10%, transparent);
+    backdrop-filter: blur(10px);
+  }
+  .ui-pill {
+    background: var(--color-surface);
     border: 1px solid var(--color-line);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ink) 8%, transparent);
-    backdrop-filter: blur(8px);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px color-mix(in srgb, #0b1020 10%, transparent);
+  }
+  .ui-selected {
+    background: color-mix(in srgb, var(--color-body) 55%, transparent);
+  }
+  [data-theme="light"] .ui-selected {
+    background: var(--color-floor);
+  }
+  .ui-hover {
+    transition: background 120ms;
+  }
+  .ui-hover:hover {
+    background: color-mix(in srgb, var(--color-body) 60%, transparent);
+  }
+  [data-theme="light"] .ui-hover:hover {
+    background: var(--color-floor);
   }
   .ui-label {
-    font-family: var(--font-pixel);
+    font-family: var(--font-mono);
     font-size: 0.7rem;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-muted);
   }
   .ui-btn {
-    font-family: var(--font-pixel);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-weight: 600;
+    border-radius: 0.6rem;
     background: var(--color-accent);
     color: var(--color-surface);
-    padding: 0.75rem 1rem;
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-accent) 30%, transparent);
+    padding: 0.7rem 1rem;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-accent) 25%, transparent);
     transition: box-shadow 150ms, filter 150ms;
   }
   .ui-btn:hover:not(:disabled) {
-    box-shadow: 0 8px 22px color-mix(in srgb, var(--color-accent) 45%, transparent);
-    filter: brightness(1.08);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--color-accent) 40%, transparent);
+    filter: brightness(1.06);
   }
   .ui-btn:disabled {
     background: var(--color-body);
@@ -84,9 +148,8 @@ body {
     cursor: not-allowed;
   }
   .ui-btn-ghost {
-    font-family: var(--font-pixel);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-weight: 500;
+    border-radius: 0.6rem;
     border: 1px solid var(--color-line);
     background: var(--color-surface);
     color: var(--color-ink);
@@ -98,6 +161,7 @@ body {
   }
   .ui-input {
     width: 100%;
+    border-radius: 0.6rem;
     background: var(--color-surface);
     border: 1px solid var(--color-line);
     color: var(--color-ink);
@@ -107,7 +171,7 @@ body {
   .ui-input:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 1px var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
   .ui-link {
     color: var(--color-accent);

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isLand, type LandGrid } from "@/domain/map/land";
+import { MAP } from "@/domain/map/project";
+import { REGIONS, REGION_HUB, regionOf } from "@/domain/map/regions";
+import { makeRoute, routePoint } from "@/domain/map/route";
 import { US_STATES } from "@/domain/map/usStates";
 import { DEFAULT_RULES } from "@/domain/org/settings";
 import { DAY } from "@/domain/time";
@@ -58,9 +61,24 @@ describe("buildMapModel trucks", () => {
     expect(model.roads.length).toBeGreaterThan(20);
   });
 
-  it("draws every truck stop on land", () => {
+  it("draws every truck stop and region ring on land", () => {
     const grid = us.grid as LandGrid;
     for (const s of US_STATES) expect(isLand(grid, s), s.code).toBe(true);
+    for (const r of REGIONS) expect(isLand(grid, REGION_HUB[r]), r).toBe(true);
+  });
+
+  it("bends roads so they cross less water than straight ones (the Great Lakes can't be avoided)", () => {
+    const grid = us.grid as LandGrid;
+    const wet = (bend: number) =>
+      US_STATES.reduce((n, s) => {
+        const route = makeRoute(demoWarehouse, s, bend);
+        for (let i = 1; i < 40; i++) {
+          const p = routePoint(route, i / 40);
+          if (!isLand(grid, { lat: -p.z, lng: p.x })) n++;
+        }
+        return n;
+      }, 0);
+    expect(wet(MAP.routeBend)).toBeLessThan(wet(0) * 0.6);
   });
 });
 
@@ -113,5 +131,32 @@ describe("buildMapModel draw cap", () => {
     const capped = buildMapModel(shipments, demoWarehouse, DEFAULT_RULES, NOW, 10);
     expect(capped.trucks.every((t) => t.status === "late" || t.status === "at_risk")).toBe(true);
     expect(capped.hiddenCount).toBe(model.trucks.length - capped.trucks.length);
+  });
+});
+
+describe("buildMapModel regions", () => {
+  it("tags every truck, road and pin with its state's Census region", () => {
+    for (const t of model.trucks) expect(regionOf(t.state)).toBe(t.region);
+    for (const r of model.roads) expect(regionOf(r.state)).toBe(r.region);
+    for (const p of model.pins) expect(regionOf(p.state)).toBe(p.region);
+  });
+
+  it("sums every open order into exactly one region", () => {
+    const open = model.trucks.reduce((n, t) => n + t.open, 0);
+    expect(REGIONS.reduce((n, r) => n + model.regions[r].open, 0)).toBe(open);
+  });
+
+  it("lists the Denver truck first among the West's problems", () => {
+    const first = model.regions.west.problems[0];
+    expect(first).toMatchObject({ state: "CO", status: "late" });
+  });
+
+  it("parks each region's loading trucks from the dock's first slot", () => {
+    for (const r of REGIONS) {
+      const loading = model.trucks.filter((t) => t.loading && t.region === r);
+      expect(model.yards[r].trucks).toBe(loading.length);
+      const xs = loading.map((t) => t.position.x);
+      if (xs.length) expect(Math.min(...xs)).toBeCloseTo(demoWarehouse.lng + 3.4, 6);
+    }
   });
 });
