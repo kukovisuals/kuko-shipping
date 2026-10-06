@@ -15,7 +15,7 @@ parity test, self-hosted fonts, `CLAUDE.md`, `docs/`.
 **Done when:** `npm run dev` shows a dark page with the "Simulated data" tag; typecheck, test,
 lint and build pass.
 
-## [ ] M1 — Rules and math
+## [x] M1 — Rules and math
 
 `domain/map` (projection, arc, bounds), `domain/ship` (delay, progress), `domain/stock`
 (available, low stock).
