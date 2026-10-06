@@ -1,0 +1,117 @@
+/* Design tokens and shared UI classes; palette must match ui/theme.ts. */
+
+@theme {
+  --color-background: #07081a;
+  --color-surface: #12143a;
+  --color-ground: #0d0f2b;
+  --color-floor: #110b2c;
+  --color-body: #1a1d4a;
+  --color-line: #2c3070;
+  --color-road: #14173d;
+  --color-accent: #ff2e97;
+  --color-flow: #22d3ee;
+  --color-neon: #c43cff;
+  --color-open: #39ff88;
+  --color-open-building: #158240;
+  --color-pending: #b15cff;
+  --color-sold: #4f7cff;
+  --color-fun: #ffb020;
+  --color-party: #ff4fd8;
+  --color-solid-top: #4a3a78;
+  --color-solid-side: #2e2552;
+  --color-solid-shade: #1d1838;
+  --color-bot-navy: #232f58;
+  --color-bot-dusk: #1e1a35;
+  --color-bot-bone: #cdc7e6;
+  --color-bot-plum: #4f2662;
+  --color-bot-mint: #3fcf98;
+  --color-bot-pink: #d34db6;
+  --color-bot-cyan: #36bfd6;
+  --color-ink: #e8ecff;
+  --color-muted: #8a90c0;
+  --color-danger: #ff4d4d;
+  --color-status-on-time: #22d3ee;
+  --color-status-at-risk: #ffb020;
+  --color-status-late: #ff3b4f;
+  --color-status-delivered-late: #8c2f45;
+
+  --font-pixel: var(--font-silkscreen), ui-monospace, monospace;
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .ui-card {
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ink) 8%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .ui-label {
+    font-family: var(--font-pixel);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .ui-btn {
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--color-accent);
+    color: var(--color-surface);
+    padding: 0.75rem 1rem;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-accent) 30%, transparent);
+    transition: box-shadow 150ms, filter 150ms;
+  }
+  .ui-btn:hover:not(:disabled) {
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--color-accent) 45%, transparent);
+    filter: brightness(1.08);
+  }
+  .ui-btn:disabled {
+    background: var(--color-body);
+    color: var(--color-muted);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .ui-btn-ghost {
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    padding: 0.5rem 0.9rem;
+  }
+  .ui-btn-ghost:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .ui-input {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink);
+    padding: 0.55rem 0.75rem;
+    font-size: 1rem;
+  }
+  .ui-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
+  }
+  .ui-link {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

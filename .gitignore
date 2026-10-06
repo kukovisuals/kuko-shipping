@@ -1,0 +1,22 @@
+# deps
+node_modules/
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# env — never commit secrets
+.env*
+!.env.example
+
+# misc
+.DS_Store
+.vercel
+coverage/
+npm-debug.log*
+
+# land-map source the owner drops in (spec §12.3)
+scripts/data/
