@@ -1,6 +1,6 @@
 # Software design — Cargo Atlas
 
-How the app is put together. The spec (`docs/prompt-design.md`) says **what** to build; this file
+How the app is put together. The spec (`docs/prompt-design.txt`) says **what** to build; this file
 records **how** and **why**, and the decisions made along the way. Rules that must never break live
 in `CLAUDE.md`.
 

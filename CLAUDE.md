@@ -8,7 +8,7 @@ table per product variant per warehouse. Desktop first, works at 375 px.
 **This build is a concept demo for Death Wish Coffee. All brand data is simulated.** Brand name as
 text only: no logos, skull artwork or product photos. A "Simulated data" tag is visible on every screen.
 
-The full spec is `docs/prompt-design.md`. Read the relevant section before changing behaviour. When
+The full spec is `docs/prompt-design.txt`. Read the relevant section before changing behaviour. When
 a big rule or lesson changes, update the spec and this file in the same commit.
 
 ## Commands

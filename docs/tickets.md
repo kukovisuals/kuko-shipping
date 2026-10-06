@@ -1,6 +1,6 @@
 # Tickets — Cargo Atlas
 
-Milestones from `docs/prompt-design.md` §11, built in order. Each one ends with typecheck, test,
+Milestones from `docs/prompt-design.txt` §11, built in order. Each one ends with typecheck, test,
 lint and build passing and one commit whose message starts with its id.
 
 Status: `[x]` done · `[ ]` open · `[-]` skipped

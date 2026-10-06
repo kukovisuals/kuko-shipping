@@ -19,7 +19,7 @@ Keep it current: when a big rule or lesson changes here, update this file in the
 
    | File | Why |
    |------|-----|
-   | `docs/prompt-design.md` (this file) | The spec and build order. Enough on its own. |
+   | `docs/prompt-design.txt` (this file) | The spec and build order. Enough on its own. |
    | `eslint.config.mjs` | The layer rules from Central Meetup. The layers are the same, so it works as is. |
    | `ui/theme.ts`, `ui/tokens.css` | Optional. The night-neon palette. Add the status colours in §10. |
 
@@ -37,7 +37,7 @@ download is blocked, and checking things on a real phone.
 Copy everything inside the box. Replace each `{…}` with your answer from §3.
 
 ```text
-Build a new web app in this folder. The full spec is docs/prompt-design.md: read all of it first.
+Build a new web app in this folder. The full spec is docs/prompt-design.txt: read all of it first.
 Follow it exactly. Where it names "Cargo Atlas", use my values below.
 
 My values:
@@ -549,7 +549,7 @@ to 20°–70°), `Atmosphere`, `Effects`.
 | Destination pins | One flat grey disc with a soft halo per state; radius by count (log) |
 | Labels | drei `Text` with the self-hosted font: badges, dock |
 | Legend | One line at the bottom (top on phones): each status colour with its order count, trucks on the road and loading, "truck colour = its worst order · positions are estimates". No other info card: the region panel is the only panel |
-| Region panel | 2D overlay (right on desktop, bottom on phones): "On-time rate · click to open", one card per region with its rate, a stacked status bar and "3 late · 2 at risk · 7 on time"; the open region lists its problem trucks (city, ship day, "3d late" / "at risk"); picking one opens its truck card |
+| Region panel | 2D overlay (right on desktop, bottom on phones) with two tabs. **On-time**: one card per region with its rate, a stacked status bar and "3 late · 2 at risk · 7 on time"; the open region lists its problem trucks (city, ship day, "3d late" / "at risk"); picking one opens its truck card. **Next day** (`domain/ship/nextDay.ts`): "Leaving Wed 7 Oct · N orders placed so far today" — orders placed today (UTC) and not shipped, per region with a share bar and the biggest states; older unshipped orders counted apart. A row opens its region |
 | Bloom | `EffectComposer` + `Bloom` (threshold 1, intensity 1.1, mipmap blur) on emissive parts only — Dark look only |
 
 Hovering a truck shows a read-out: state, order count, ship day, "2 of 50 late · 1 at risk ·

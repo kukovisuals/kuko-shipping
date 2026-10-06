@@ -3,7 +3,7 @@
 ## Daily loop
 
 1. Pick the next open ticket in `docs/tickets.md`.
-2. Read the spec section it points to (`docs/prompt-design.md`) and, for Next.js work, the matching
+2. Read the spec section it points to (`docs/prompt-design.txt`) and, for Next.js work, the matching
    guide in `node_modules/next/dist/docs/`.
 3. Domain rules first, with tests next to them. Then platform, engine, features, app.
 4. Run the checks:
