@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { pinHeight } from "./scale";
+import { pinRadius } from "./scale";
 
-describe("pinHeight", () => {
-  it("grows with the log of the count", () => {
-    expect(pinHeight(1)).toBeCloseTo(0.2, 10);
-    expect(pinHeight(4)).toBeCloseTo(0.5, 10);
-    expect(pinHeight(256)).toBeCloseTo(1.4, 10);
-    expect(pinHeight(0)).toBe(pinHeight(1));
+describe("pinRadius", () => {
+  it("grows with the log of the count, capped", () => {
+    expect(pinRadius(1)).toBeCloseTo(0.16, 10);
+    expect(pinRadius(4)).toBeCloseTo(0.22, 10);
+    expect(pinRadius(256)).toBeCloseTo(0.4, 10);
+    expect(pinRadius(1e9)).toBe(0.5);
+    expect(pinRadius(0)).toBe(pinRadius(1));
   });
 });

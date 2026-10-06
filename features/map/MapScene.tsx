@@ -209,7 +209,7 @@ function Fleet({
           <Label text={`Loading · ${yard.orders} orders`} position={[(yard.west + yard.east) / 2, ground + 0.6, -yard.north]} size={0.6} color="muted" />
         </>
       )}
-      <Pins pins={pins} />
+      <Pins pins={pins} y={ground} />
     </>
   );
 }

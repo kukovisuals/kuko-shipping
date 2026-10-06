@@ -546,7 +546,7 @@ to 20°–70°), `Atmosphere`, `Effects`.
 | Trucks | Two **instanced** meshes (cargo box in the status colour, plain cab); `on_time` blue, `at_risk` amber, `late` red; late trucks pulse (M8) |
 | Badges | drei `Text` with the order count over the biggest loads on the road (≥ 10 orders, at most 40) and over the hovered or picked truck |
 | Dock | A pad off the coast where loading trucks park, labelled with the orders waiting |
-| Destination pins | One thin post per state; height by count (log) |
+| Destination pins | One flat grey disc with a soft halo per state; radius by count (log) |
 | Labels | drei `Text` with the self-hosted font: badges, dock |
 | Legend | One line at the bottom (top on phones): each status colour with its order count, trucks on the road and loading, "truck colour = its worst order · positions are estimates". No other info card: the region panel is the only panel |
 | Region panel | 2D overlay (right on desktop, bottom on phones): "On-time rate · click to open", one card per region with its rate, a stacked status bar and "3 late · 2 at risk · 7 on time"; the open region lists its problem trucks (city, ship day, "3d late" / "at risk"); picking one opens its truck card |
