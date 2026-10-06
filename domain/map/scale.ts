@@ -9,7 +9,8 @@ export function towerHeight(units: number): number {
   return minHeight + (maxHeight - minHeight) * clamp(share, 0, 1);
 }
 
-/** Destination post height, growing with the square root of the shipments it holds. */
+/** Destination post height, growing with the log of the shipments it holds (a state can hold
+ * hundreds). */
 export function pinHeight(count: number): number {
-  return 0.6 + 0.5 * Math.sqrt(Math.max(1, count));
+  return 0.2 + 0.15 * Math.log2(Math.max(1, count));
 }

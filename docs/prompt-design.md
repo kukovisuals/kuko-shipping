@@ -1,7 +1,7 @@
 # Prompt design — build a 3D shipping and inventory tracker from one prompt
 
-This file lets you start a new app from **one prompt**: a 3D flat world map that shows an
-e-commerce company's warehouse, its shipments flying to customers, which ones are late and by how
+This file lets you start a new app from **one prompt**: a 3D map of the US that shows an
+e-commerce company's warehouse, trucks carrying its orders to each state, which ones are late and by how
 much, and a stock count for every product and variant. It holds the prompt, the spec the prompt
 points to, the build order, and the lessons carried over from Central Meetup.
 
@@ -82,10 +82,10 @@ is left open.
 | `{PRODUCT_NAME}`, `{DOMAIN}` | Cargo Atlas, cargoatlas.app |
 | `{DEMO_CLIENT}` | Death Wish Coffee, simulated data only (see §3a). Concept demo, not affiliated with the brand. Use the brand name as text only: no logos, skull artwork or product photos. A small "Simulated data" tag stays visible on every screen. |
 | `{WAREHOUSES}` | One warehouse: `W01` "Upstate NY Roastery & Fulfilment", Round Lake, NY, US, lat 42.94, lng −73.80 (assumed location). The schema allows many from day one. |
-| `{SLA_RULE}` | Domestic (US) orders: promised = order date + 7 calendar days. International orders carry their own promised date = order date + 14 days. Editable per company in Settings. |
+| `{SLA_RULE}` | Promised = order date + 7 calendar days (US lower 48 only). An order may carry its own promised date, which wins. Editable per company in Settings. |
 | `{DATA_SOURCE}` | Demo seed built from §3a + CSV import. No Shopify sync: M9 is skipped. |
 | `{TRACKING_SOURCE}` | Seeded status events (§3a), plus events entered by hand or by CSV. No carrier-tracking API. |
-| `{CARGO}` | A small box-built cargo drone per shipment, coloured by its delay status. |
+| `{CARGO}` | A plain box truck (cargo box + cab, no wheels or logos) per warehouse + state + ship day, coloured by its worst order's delay status, with an order-count badge. |
 | `{ART_DIRECTION}` | Night neon: deep navy sea, dark voxel land, cyan routes, neon pink accent, bloom on emissive parts only. Cubes and thin lines. No gradients or rounded corners. |
 | `{SIGN_IN}` | Email + password through Supabase Auth. Confirmed emails only. Members of the company only. |
 | `{LEAVE_OUT}` | Payments, customer notifications, returns flow, route optimisation, demand forecasting, AI features, a multi-company UI, live carrier sync, subscription management, any real brand artwork. |
@@ -137,70 +137,60 @@ then `shipped` movements from the seeded shipments.
 - Fall Seasonal Blend `WB-12OZ` and Dark Roast Pods `50CT` are **below reorder point** → amber.
 - Logo T-Shirt `2XL` is **out of stock**.
 
-### Orders (300 over the last 30 days)
+### Orders (about 300 a day)
 
-- Order numbers: `DW-100001` upward. About 35 % are subscription-style repeats: same destination
-  every ~30 days, order number prefix `DW-SUB-`. They are normal orders; there is no subscription
-  table.
-- Volume: 8–14 orders a day, a bit higher on Mondays and the 1st of the month.
+- About **300 orders a day** (±10 %, 15 % more on Mondays and 20 % more on the 1st of the month).
+  The map fixtures make the last 14 days; the seed makes the last 30.
+- Order numbers: `DW-100001` upward. About 35 % are subscription-style repeats, prefix `DW-SUB-`.
+  They are normal orders; there is no subscription table.
 - Lines per order: 1 line (60 %), 2 lines (30 %), 3 lines (10 %). Qty 1 (80 %) or 2 (20 %).
   Pick variants by the sales weights above.
 
-### Destinations (city-level only, never a street)
+### Destinations (US lower 48 + DC, city-level only, never a street)
 
-| City | Country | lat | lng | Share |
-|------|---------|-----|-----|-------|
-| New York, NY | US | 40.71 | −74.01 | 12 % |
-| Los Angeles, CA | US | 34.05 | −118.24 | 9 % |
-| Chicago, IL | US | 41.88 | −87.63 | 7 % |
-| Boston, MA | US | 42.36 | −71.06 | 7 % |
-| Denver, CO | US | 39.74 | −104.99 | 6 % |
-| Houston, TX | US | 29.76 | −95.37 | 5 % |
-| Philadelphia, PA | US | 39.95 | −75.17 | 5 % |
-| Dallas, TX | US | 32.78 | −96.80 | 5 % |
-| Seattle, WA | US | 47.61 | −122.33 | 5 % |
-| Atlanta, GA | US | 33.75 | −84.39 | 5 % |
-| Phoenix, AZ | US | 33.45 | −112.07 | 4 % |
-| Miami, FL | US | 25.76 | −80.19 | 4 % |
-| Minneapolis, MN | US | 44.98 | −93.27 | 4 % |
-| Nashville, TN | US | 36.16 | −86.78 | 4 % |
-| Portland, OR | US | 45.52 | −122.68 | 4 % |
-| Austin, TX | US | 30.27 | −97.74 | 4 % |
-| Toronto, ON | CA | 43.65 | −79.38 | 4 % |
-| Vancouver, BC | CA | 49.28 | −123.12 | 2 % |
-| London | GB | 51.51 | −0.13 | 3 % |
-| Sydney, NSW | AU | −33.87 | 151.21 | 1 % |
+Trucks only drive, so every order goes to the lower 48 or DC; no Alaska, Hawaii or overseas.
 
-Add a small random offset (±0.3°) per order so pins in one city spread a little, then let the
-0.5° pin-merge rule in §10 group them.
+| State | Share |
+|-------|-------|
+| NY | 15 % |
+| FL | 12 % |
+| CA | 12 % |
+| TX | 11 % |
+| The other 45 (44 states + DC) | 50 %, split by population |
+
+Each state has one **anchor** (its main city, in `domain/map/usStates.ts`) where its trucks stop.
+An order's destination is the anchor ± 0.3°.
 
 ### Shipping and carriers
 
-| Carrier | Used for | Transit time |
-|---------|----------|--------------|
-| USPS Ground Advantage | US orders under 2 lb (55 % of US) | 2–5 days |
-| UPS Ground | US orders 2 lb and up (45 % of US) | 2–4 days |
-| FedEx International | CA, GB, AU | 6–12 days |
+| Carrier | Used for |
+|---------|----------|
+| USPS Ground Advantage | 55 % of orders |
+| UPS Ground | 45 % of orders |
 
-- Handling (order to `shipped_at`): 1 day for 90 %, 2 days for 7 %, 3+ days for 3 %.
+- Trucks leave once a day at 19:00 UTC (3 pm in New York). Every order leaves on the next day's
+  truck; the only slow order is story 4.
+- Transit: `1 + distance / 20` days (distance in degrees from `W01` to the anchor, so about 1 day
+  next door and 3.3 to California), plus up to half a day per order.
+- About 1 truck in 20 is **held at a hub** for 3–6 extra days ("weather delay at hub", "hub
+  backlog", "missed connection at hub"); 1 parcel in 500 stalls on its own. Delays come by truck
+  on purpose: a truck takes its worst order's colour, so delays sprinkled on every order would turn
+  every big truck red.
 - Tracking numbers: random strings in each carrier's usual shape. Tracking URLs stay `null`
   (no fake links to real carrier sites).
-- Events per shipment: `label_created` → `in_transit` (with a hub `place` and lat/lng about
-  half the time) → `out_for_delivery` → `delivered`.
-- Carrier ETA: set on about 70 % of in-transit shipments; the rest show "No carrier ETA".
+- Events per shipment: `label_created` → `in_transit` (leaving `W01`) → `in_transit` at a hub (with
+  lat/lng half the time) → `out_for_delivery` → `delivered`.
+- Carrier ETA: on about 70 % of in-transit shipments (30 % of held ones); the rest show "No carrier
+  ETA".
 
-### Delay mix (for orders still open plus the last 7 days of deliveries)
+### Delay stories the demo must show (set on purpose)
 
-- About 10 % `late`, 8 % `at_risk`, the rest `on_time`; 3–5 `delivered_late`.
-
-**Delay stories the demo must show** (set on purpose):
-
-1. A Sydney order stuck in `exception` ("held at customs") — also proves the date-line arc.
-2. A cluster of 4 UPS shipments to Denver, 3 days late ("weather delay at hub").
+1. A Texas order held at the Dallas hub with a carrier `exception` → its truck is at risk.
+2. A truck to Denver carrying 4 UPS shipments, 3 days late ("weather delay at hub").
 3. One USPS shipment to Chicago with no scan for 52 h → `at_risk` ("stalled").
-4. One order placed 3 days ago that has not shipped yet → `at_risk` ("not shipped yet"),
-   waiting on the out-of-stock Fall Seasonal Blend `GR-12OZ`.
-5. Two delivered-late orders to London (1 and 2 days late).
+4. One Nashville order placed 3 days ago that has not shipped yet → `at_risk` ("not shipped yet"),
+   waiting on the out-of-stock Fall Seasonal Blend `GR-12OZ`. Its loading truck is at risk.
+5. Two delivered-late orders to Seattle (1 and 2 days late).
 
 ---
 
@@ -217,8 +207,9 @@ A private 3D dashboard for one e-commerce company. Desktop first, works on phone
   and a promised date (its own, or placed + SLA days).
 - A **shipment** leaves one warehouse for one order, with a carrier, tracking number, items, and a
   timeline of **status events**.
-- Each shipment flies as a **cargo drone** along an arc from its warehouse to its destination,
-  coloured by its **delay status**.
+- Shipments ride **trucks**: every order leaving one warehouse for one state on one ship day is on
+  the same truck, which drives along a straight road to the state's anchor city. The truck takes the
+  **worst delay status** of its open orders and shows how many orders it carries.
 - The **Alerts** panel lists late and at-risk shipments, worst first, with how many days late and
   the carrier ETA when there is one.
 - The **Inventory** screen is a **table**, not 3D: product → variants → per warehouse on hand,
@@ -227,10 +218,10 @@ A private 3D dashboard for one e-commerce company. Desktop first, works on phone
 ### Three journeys (design every screen at 375 px too)
 
 ```
-Ops lead:   log in → map → Alerts (3 late) → tap a red drone → shipment card → days late,
+Ops lead:   log in → map → Alerts (3 late) → tap a red truck → its orders → shipment card → days late,
             last event, carrier ETA → "Open tracking" or "Acknowledge" with a note
 Stock:      Inventory → filter "low stock" → variant row → add a movement (received +50) → saved
-Import:     Shipments → "Import CSV" → preview rows and errors → confirm → drones appear on the map
+Import:     Shipments → "Import CSV" → preview rows and errors → confirm → trucks appear on the map
 ```
 
 ---
@@ -247,7 +238,8 @@ Hosting: Vercel (staging branch → staging site, main → production)
 Database, auth: Supabase (two projects: staging and production)
 Email: Resend over SMTP from Supabase Auth.
 Fonts (self-hosted in public/fonts): Silkscreen (titles/buttons), Space Grotesk (body, tables).
-Land map: Natural Earth 1:110m land (public domain), baked once into public/map/land.json.
+Land map: Natural Earth 1:50m admin-1 states (public domain), lower 48 + DC, baked once into
+public/map/us.json (0.25° land grid + simplified state outlines).
 ```
 
 `package.json` scripts:
@@ -276,7 +268,7 @@ app → features → engine | platform | ui | config → domain
 | `ui/` | `theme.ts` + `tokens.css` (a test keeps them equal) | nothing in the project | — |
 | `config/` | Public settings (limits, defaults) | `domain/` | features, app, engine, platform |
 | `platform/` | Supabase clients, one `*Repo.ts` per table, `http.ts`, `auth.ts`, `org.ts`. Starts with `import "server-only"`. | `domain/`, `config/` | React, features, app, engine |
-| `engine/` | Reusable 3D pieces: land, warehouse, arcs, cargo drone, labels, effects | `domain/`, `ui/`, `config/` | features, app, platform |
+| `engine/` | Reusable 3D pieces: land, lines, dock, warehouse, trucks, pins, labels, effects | `domain/`, `ui/`, `config/` | features, app, platform |
 | `features/<x>/` | One feature's client code, public API in `index.ts` | own folder, `domain`, `engine`, `ui`, `config` | other features, `app/`, `platform/` |
 | `features/<x>/server/` | That feature's route handlers and server views, API in `server/index.ts` | + `platform/` | other features, `app/` |
 | `app/` | Routes and pages. Imports features only via `@/features/<x>` or `@/features/<x>/server`. | anything | feature internals |
@@ -295,12 +287,12 @@ app → features → engine | platform | ui | config → domain
 app/            page.tsx (the map), layout.tsx, error.tsx, inventory, shipments, alerts,
                 settings, login, forgot-password, reset-password, auth/callback,
                 api/**/route.ts, _experience/Experience.tsx
-domain/map      project, arc, land, bounds
-domain/ship     types, status, delay, progress, events, csv
+domain/map      project, route, land, bounds, usStates, scale
+domain/ship     types, status, delay, progress, trucks, events, csv
 domain/stock    types, ledger, available, lowStock, sku
 domain/org      roles, settings
 domain/brand.ts
-engine/         Land, Warehouse, RouteArcs, CargoDrones (instanced), Label, Effects,
+engine/         Land, Lines, Dock, Warehouse, Trucks (instanced), Pins, Label, FitView, Effects,
                 Atmosphere, NeonClock, useReducedMotion, usePortrait
 features/       map (scene, camera, legend), shipments (card, timeline, import), alerts,
                 inventory (table, movement form, product form), warehouses, settings, account
@@ -437,8 +429,8 @@ Put these in the new CLAUDE.md, numbered.
    country, lat, lng.
 8. Every time rule lives in `domain/ship/` and takes `now`. The server passes one `now` per request
    so the whole page agrees.
-9. The cargo drone's position is an **estimate** unless the latest event has lat/lng. The card says
-   "Estimated position" when it is.
+9. A truck's position is always an **estimate** (it stands for many parcels); the truck card says
+   "Estimated position". A single order's card says so too unless its latest event has lat/lng.
 10. Imports are idempotent: the same CSV twice changes nothing.
 11. Only confirmed emails count as signed in. Login and forgot-password never reveal whether an
     email has an account. There is no public sign-up; the owner invites members.
@@ -494,15 +486,18 @@ to 20°–70°), `Atmosphere`, `Effects`.
 
 - Ground plane X/Z, Y up. **1 scene unit = 1 degree.** The map is 360 × 180.
 - Projection (equirectangular): `x = lng`, `z = −lat`. Inverse: `lng = x`, `lat = −z`.
-- Land: `bakeLand.ts` turns Natural Earth land into a 1° grid (360 × 180 cells, 1 = land) saved as
-  `public/map/land.json`. Each land cell is one instanced box, 0.9 wide, 0.3 tall.
-- Route arc from warehouse A to destination B (both at y = 0):
-  - `d = |B − A|`, peak height `h = clamp(0.25 · d, 2, 30)`.
-  - Control point `C = (A + B) / 2 + (0, 2h, 0)`.
-  - Point at t ∈ [0, 1]: `P(t) = (1 − t)² A + 2 (1 − t) t C + t² B`. Its highest point is `h` at t = ½.
-  - Routes that cross the date line (`|lngB − lngA| > 180`) are drawn the long way across the
-    map in the MVP. A test checks every arc stays inside the map.
-- Destinations closer than 0.5° to each other share one pin with a count.
+- Land: `bakeLand.ts` turns the Natural Earth states (lower 48 + DC) into a 0.25° grid over
+  `US_BOUNDS` (1 = land) plus state outlines simplified to 0.03°, saved as `public/map/us.json`.
+  Each land cell is one instanced box, 90 % of the cell wide, 0.12 tall. Borders are thin lines.
+- **Trucks** (`domain/ship/trucks.ts`): group orders by warehouse + state + **UTC ship day**; an
+  unshipped order rides its state's **loading** truck. A truck's status is the worst of its open
+  orders (`late` > `at_risk` > `on_time`); once all its orders are delivered it is not drawn.
+- **Route**: a straight ground line from the warehouse to the state's anchor (`domain/map/route.ts`).
+  Routes stay inside the lower 48, so there is no date-line case.
+- One road line per state with a truck on it. One pin per state (open orders + deliveries in the
+  last 7 days), height on a log scale.
+- Loading trucks park on a **dock** pad over the sea beside the warehouse (`MAP_CONFIG.yard`), with
+  one "Loading · N orders" label instead of a badge each.
 
 ### Delay rules (`domain/ship/delay.ts`; `day = 24 h`)
 
@@ -521,40 +516,43 @@ to 20°–70°), `Atmosphere`, `Effects`.
 - Every result also carries a `reason` string ("3 days past promise", "no scan for 52 h").
 - Alerts are sorted: `late` by days late (most first), then `at_risk`, then by order date.
 
-### Cargo progress (`domain/ship/progress.ts`)
+### Truck progress (`domain/ship/progress.ts`, `domain/ship/trucks.ts`)
 
-- Not shipped: `p = 0` (drone sits at the warehouse).
-- Delivered: `p = 1`, then the drone fades out over 2 s and leaves a small pin for 7 days.
-- In transit, no event position: `p = clamp((now − shipped_at) / (promised − shipped_at), 0, 0.95)`.
-  If `promised ≤ shipped_at`, `p = 0.95`. A late drone holds at 0.95 and pulses.
-- Latest event has lat/lng: the drone sits at that point, lifted onto the arc's height at the
-  nearest `t`.
+- Loading: `p = 0` (on the dock).
+- On the road: `p = clamp((now − departed) / (promised − departed), 0, 0.95)`, where `departed` is
+  the truck's first ship time and `promised` the latest promise among its open orders. If
+  `promised ≤ departed`, `p = 0.95`. A late truck holds at 0.95 and pulses.
+- A truck's position is always an estimate. A single order's card shows a scan position when its
+  latest event has lat/lng.
 
 ### What is drawn
 
 | Piece | How |
 |-------|-----|
-| Sea + land | Dark floor; voxel land from `land.json` as one instanced mesh; thin neon coastline optional |
+| Sea + land | Dark floor; voxel US land from `us.json` as one instanced mesh; neon state borders |
 | Warehouse | A box tower at its lat/lng; height from total units on hand (log scale, 2–10 units); a ring at its base turns amber when any variant there is low, red when any is out |
-| Routes | One arc per open shipment, colour by delay status; delivered routes dim and drawn only while hovered |
-| Cargo drones | One **instanced** mesh for all drones; colour by status: `on_time` cyan, `at_risk` amber, `late` red, `delivered_late` dim red; late drones pulse |
-| Destination pins | Small posts; size by count |
-| Labels | drei `Text` with the self-hosted font: warehouse name; on hover, order number + status |
-| Legend | Small 2D overlay: colour = status, counts per status, "positions are estimates" |
+| Roads | One faint straight line per state with a truck on the road |
+| Trucks | Two **instanced** meshes (cargo box in the status colour, plain cab); `on_time` cyan, `at_risk` amber, `late` red; late trucks pulse (M8) |
+| Badges | drei `Text` with the order count over the biggest loads on the road (≥ 10 orders, at most 40) and over the hovered or picked truck |
+| Dock | A pad off the coast where loading trucks park, labelled with the orders waiting |
+| Destination pins | One thin post per state; height by count (log) |
+| Labels | drei `Text` with the self-hosted font: warehouse name, badges, dock |
+| Legend | Small 2D overlay: trucks on the road and loading, order counts per status, "truck colour = its worst order", "Truck positions are estimates" |
 | Bloom | `EffectComposer` + `Bloom` (threshold 1, intensity 1.1, mipmap blur) on emissive parts only |
 
-Clicking a drone, route or pin opens the **shipment card**: order number, items (SKU × qty),
-warehouse, carrier, tracking link, placed / shipped / promised dates, status and reason, days late,
-remaining time or "No carrier ETA", the event timeline, and the `action` slot.
+Hovering a truck shows a read-out: state, order count, ship day, "2 of 50 late · 1 at risk ·
+12 delivered". Clicking it opens the **truck card**: the same header plus its orders, worst first.
+Clicking an order opens the **shipment card**: order number, items (SKU × qty), warehouse, carrier,
+tracking link, placed / shipped / promised dates, status and reason, days late, remaining time or
+"No carrier ETA", the event timeline, and the `action` slot.
 
 ### Phone budget
 
 - DPR max 1.25 on phones, 2 on desktop. No shadows on phones.
-- Draw at most 2,000 drones and arcs; past that, show the late and at-risk ones and a count of the
-  rest.
+- Draw at most 2,000 trucks; past that, show the late and at-risk ones and a count of the rest.
 - Target ≥ 30 fps on a real phone, ≥ 55 fps on desktop.
-- Instanced meshes for land, drones and pins; one shared clock uniform, not per-mesh `useFrame`.
-- Under `prefers-reduced-motion`: drones sit still at their progress point; no pulsing.
+- Instanced meshes for land, trucks and pins; one shared clock uniform, not per-mesh `useFrame`.
+- Under `prefers-reduced-motion`: trucks sit still at their progress point; no pulsing.
 
 ### React rules for the scene (carried over)
 
@@ -572,14 +570,14 @@ Each milestone ends with typecheck, test, lint and build passing, and one commit
 | id | Milestone | Done when |
 |----|-----------|-----------|
 | M0 | Skeleton | Next app with §5, `@/` alias, `eslint.config.mjs` with `arch/*`, theme + test, fonts, `CLAUDE.md`, `docs/`; `npm run dev` shows a dark page |
-| M1 | Rules and math | `domain/map` (projection, arc, bounds) and `domain/ship` (delay, progress) and `domain/stock` (available, low stock) with tests for every rule in §7, §8 and §10, including the date-line and "no carrier ETA" cases |
-| M2 | Static scene | Land baked; the map draws from fixture data: warehouse, arcs, drones at their progress point in status colours, pins, legend, bloom, pan/zoom; works at 375 px |
-| M3 | Database | `0001_init.sql` with §7; owner pastes it into staging; `seedDemo.ts` builds the Death Wish demo from §3a (one company, warehouse `W01`, 12 products, 36 variants, 300 orders over the last 30 days, the destination and carrier mix, every stock story and delay story); same seed twice gives the same data; the map reads real data through the repos |
+| M1 | Rules and math | `domain/map` (projection, route, bounds) and `domain/ship` (delay, progress) and `domain/stock` (available, low stock) with tests for every rule in §7, §8 and §10, including the date-line and "no carrier ETA" cases |
+| M2 | Static scene | US land and state borders baked; the map draws from fixture data (§3a volumes): warehouse, roads, trucks per state per ship day at their progress point in their worst status colour with count badges, a loading dock, state pins, truck card with its orders, legend, bloom, pan/zoom; works at 375 px |
+| M3 | Database | `0001_init.sql` with §7; owner pastes it into staging; `seedDemo.ts` builds the Death Wish demo from §3a (one company, warehouse `W01`, 12 products, 36 variants, about 300 orders a day over the last 30 days, the destination and carrier mix, every stock story and delay story); same seed twice gives the same data; the map reads real data through the repos |
 | M4 | Accounts and roles | Login, logout, forgot and reset password, owner invites members; confirmed emails only; `requireMember()` on every route; `proxy.ts` and security headers |
 | M5 | Inventory | Inventory table with search and "low stock" filter; add a movement; refused below zero; reorder points; warehouse ring colour follows stock; ledger history per variant |
 | M6 | Shipments | CSV import with preview and row errors; same file twice changes nothing; ship a shipment (takes stock once); add events by hand; shipment card with timeline |
 | M7 | Delays and alerts | Alerts panel sorted per §10; acknowledge with a note; header badge with the late count; `/settings` edits SLA, risk window, stall hours, handling days, and the map recolours |
-| M8 | Motion | Drones fly from their last point to their new one when data refreshes; late drones pulse; delivered fade; all proved with `step()` tests; phone budget met |
+| M8 | Motion | Trucks drive from their last point to their new one when data refreshes; late trucks pulse; delivered fade; all proved with `step()` tests; phone budget met |
 | M9 | Shopify sync (skipped for this build: `{DATA_SOURCE}` does not ask for it) | A Shopify custom app token in `.env.local`; a server action pulls products, variants, inventory levels, orders and fulfilments into the same tables by `external_id`; same pull twice changes nothing |
 
 Then: staging deploy, owner tests on a real phone, production.
@@ -592,8 +590,8 @@ Then: staging deploy, owner tests on a real phone, production.
    staging, production. Turn on "Confirm email". Turn **off** public sign-ups (members are invited).
 2. **Email**: Resend, verified domain, one API key per Supabase project, Supabase → Auth → SMTP.
    Invite and recovery templates use `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=…`.
-3. **Land map**: if the sandbox can't download Natural Earth, the owner downloads the 1:110m land
-   file once and drops it in `scripts/data/`.
+3. **Land map**: the owner downloads Natural Earth 1:50m "Admin 1 – States, Provinces" (the
+   `ne_50m_admin_1_states_provinces_lakes` shapefile, all its parts) once into `scripts/data/`.
 4. **Vercel**: import the repo; `staging` → staging domain (behind Vercel login), `main` →
    production. Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY` (sensitive), `NEXT_PUBLIC_SITE_URL`.
@@ -636,7 +634,10 @@ A migration only adds; renaming or dropping takes two releases.
 - **A fixed 7 days is not a promise.** Express and ground, domestic and international differ. Keep
   `promised_at` per order so a real promise always wins over the default.
 - **Estimated positions look like GPS.** Keep the "Estimated position" label.
-- **Thousands of arcs** kill phones. Instance everything; cap per §10.
+- **Thousands of meshes** kill phones. Instance everything; cap per §10. Text badges are not
+  instanced: cap them too.
+- **Worst status wins** turns every big truck red if delays are sprinkled per order. Real delays
+  cluster (a hub, a storm); the demo data does the same.
 - **Seeded dates go stale.** The demo seed builds every date relative to the day it runs, so the
   late and at-risk stories still hold when the demo is shown weeks later. Re-run the seed before
   a pitch.
@@ -652,7 +653,7 @@ A migration only adds; renaming or dropping takes two releases.
 | The demo client | §3a and `scripts/seedDemo.ts`; nothing else |
 | The promise rule | `domain/ship/delay.ts` and the `organisations` settings; tests first |
 | Add warehouses | Rows in `warehouses`; never code |
-| What flies | `engine/CargoDrones.tsx` (shape), keep `progress.ts` and `step()` |
+| What drives | `engine/Trucks.tsx` (shape), keep `trucks.ts`, `progress.ts` and `step()` |
 | Look | `ui/theme.ts` + `ui/tokens.css`, `engine/Land.tsx` |
 | Data source | A new `features/<source>/server` that writes through `import_batch()` and `apply_movement()`; the rest stays the same |
-| Map resolution | `bakeLand.ts` grid size and `MAP`; keep 1 unit = 1 degree |
+| Map area / resolution | `US_BOUNDS`, `bakeLand.ts` cell size and `MAP`; keep 1 unit = 1 degree |

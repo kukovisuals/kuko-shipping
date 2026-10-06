@@ -45,6 +45,16 @@ export function localDateTime(ms: Ms, timeZone: string): string {
   return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
 }
 
+/** "Mon 5 Oct" in the given time zone, for ship days on the map. */
+export function localDayLabel(ms: Ms, timeZone: string): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short", day: "numeric", month: "short" })
+      .formatToParts(ms)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.weekday} ${p.day} ${p.month}`;
+}
+
 /** "45 min", "20 h", "2 d 4 h" — for remaining times. Negative durations read as 0. */
 export function describeDuration(ms: Ms): string {
   const minutes = Math.max(0, Math.round(ms / 60_000));

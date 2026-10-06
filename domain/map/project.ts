@@ -2,10 +2,9 @@
 export const MAP = {
   width: 360,
   height: 180,
-  landCellSize: 0.9,
-  landCellHeight: 0.3,
-  pinMergeDeg: 0.5,
-  arc: { heightFactor: 0.25, minHeight: 2, maxHeight: 30 },
+  /** A land box covers this share of its grid cell, leaving a thin gap between boxes. */
+  landCellFill: 0.9,
+  landCellHeight: 0.12,
 } as const;
 
 export type LatLng = { lat: number; lng: number };

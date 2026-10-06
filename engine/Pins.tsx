@@ -4,10 +4,10 @@ import { project, type LatLng } from "@/domain/map/project";
 import { pinHeight } from "@/domain/map/scale";
 import { glow } from "@/engine/colors";
 
-/** A small glowing post per destination; taller for more shipments. */
+/** A thin post at each destination; taller for more shipments. */
 export function Pins({ pins }: { pins: readonly (LatLng & { count: number })[] }) {
   const ref = useRef<InstancedMesh>(null);
-  const color = useMemo(() => glow("neon", 1.6), []);
+  const color = useMemo(() => glow("neon", 1.05), []);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
@@ -28,7 +28,7 @@ export function Pins({ pins }: { pins: readonly (LatLng & { count: number })[] }
   if (pins.length === 0) return null;
   return (
     <instancedMesh key={pins.length} ref={ref} args={[undefined, undefined, pins.length]}>
-      <boxGeometry args={[0.28, 1, 0.28]} />
+      <boxGeometry args={[0.16, 1, 0.16]} />
       <meshBasicMaterial color={color} toneMapped={false} />
     </instancedMesh>
   );

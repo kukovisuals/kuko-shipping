@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAY, HOUR, describeDuration, localDate, localDateTime, parseIso, toIso } from "./time";
+import { DAY, HOUR, describeDuration, localDate, localDateTime, localDayLabel, parseIso, toIso } from "./time";
 
 const NY = "America/New_York";
 
@@ -25,6 +25,7 @@ describe("local display", () => {
     expect(toIso(placed)).toBe("2026-09-29T03:30:00.000Z");
     expect(localDate(placed, NY)).toBe("2026-09-28");
     expect(localDateTime(placed, NY)).toBe("2026-09-28 23:30");
+    expect(localDayLabel(placed, NY)).toBe("Mon 28 Sep");
   });
 
   it("counts days as fixed 24 h, so a DST change moves the local clock time", () => {

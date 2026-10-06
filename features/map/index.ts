@@ -1,3 +1,3 @@
-export { MapScene, type MapWarehouse } from "./MapScene";
-export { buildMapModel, type MapItem, type MapModel, type MapShipment } from "./model";
+export { MapScene, type MapLand, type MapWarehouse } from "./MapScene";
+export { buildMapModel, type MapModel, type MapOrder, type MapShipment, type MapTruck } from "./model";
 export { demoShipments, demoWarehouse } from "./fixtures";

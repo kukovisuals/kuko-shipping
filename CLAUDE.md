@@ -1,7 +1,7 @@
 # CLAUDE.md — Cargo Atlas
 
-A private 3D flat world map for one e-commerce company: warehouses, shipments flying to customers
-as cargo drones coloured by delay status, an Alerts panel for late/at-risk shipments, and a stock
+A private 3D map of the US (lower 48 + DC) for one e-commerce company: warehouses, and trucks
+carrying each day's orders to each state, coloured by their worst order's delay status, an Alerts panel for late/at-risk shipments, and a stock
 table per product variant per warehouse. Desktop first, works at 375 px.
 
 **This build is a concept demo for Death Wish Coffee. All brand data is simulated.** Brand name as
@@ -18,7 +18,7 @@ npm run build        # next build
 npm run lint         # eslint (includes arch/* layer rules)
 npm test             # vitest run
 npm run typecheck    # next typegen && tsc --noEmit
-npm run bake:land    # tsx scripts/bakeLand.ts → public/map/land.json
+npm run bake:land    # tsx scripts/bakeLand.ts → public/map/us.json (needs scripts/data/ne_50m_admin_1_*)
 npm run seed:demo    # tsx scripts/seedDemo.ts (fixed seed 4242, dates relative to today)
 ```
 
@@ -51,7 +51,7 @@ app → features → engine | platform | ui | config → domain
 | `ui/` | `theme.ts` + `tokens.css` (a test keeps them equal) | nothing in the project | — |
 | `config/` | Public settings (limits, defaults) | `domain/` | features, app, engine, platform |
 | `platform/` | Supabase clients, one `*Repo.ts` per table, `http.ts`, `auth.ts`, `org.ts`. Starts with `import "server-only"`. | `domain/`, `config/` | React, features, app, engine |
-| `engine/` | Reusable 3D pieces: land, warehouse, arcs, drones, labels, effects | `domain/`, `ui/`, `config/` | features, app, platform |
+| `engine/` | Reusable 3D pieces: land, lines, dock, warehouse, trucks, pins, labels, effects | `domain/`, `ui/`, `config/` | features, app, platform |
 | `features/<x>/` | One feature's client code, public API in `index.ts` | own folder, `domain`, `engine`, `ui`, `config` | other features, `app/`, `platform/` |
 | `features/<x>/server/` | Route handlers + server views, API in `server/index.ts` | + `platform/` | other features, `app/` |
 | `app/` | Routes/pages; imports features only via `@/features/<x>` or `@/features/<x>/server` | anything | feature internals |
@@ -90,8 +90,8 @@ app → features → engine | platform | ui | config → domain
 7. Never store a customer's name, email, phone or street address. Destination = city, region,
    country, lat, lng.
 8. Every time rule lives in `domain/ship/` and takes `now`. The server passes one `now` per request.
-9. A drone's position is an **estimate** unless the latest event has lat/lng; the card then says
-   "Estimated position".
+9. A truck's position is always an **estimate** ("Estimated position" on its card); a single order's
+   position is an estimate unless its latest event has lat/lng.
 10. Imports are idempotent: the same CSV twice changes nothing.
 11. Only confirmed emails count as signed in. Login/forgot-password never reveal whether an email
     has an account. No public sign-up; the owner invites members.
@@ -114,26 +114,29 @@ app → features → engine | platform | ui | config → domain
 
 ## Domain rules (tested in `domain/`)
 
-- **Map:** 1 scene unit = 1°. `x = lng`, `z = −lat`, Y up. Arc peak `h = clamp(0.25·d, 2, 30)`,
-  quadratic Bézier with control `C = mid + (0, 2h, 0)`. Date-line routes go the long way; a test
-  keeps every arc inside the map. Destinations < 0.5° apart share one pin. Sizes live in `MAP`
-  (`domain/map/project.ts`).
+- **Map:** 1 scene unit = 1°. `x = lng`, `z = −lat`, Y up. US only: lower 48 + DC, 0.25° land grid,
+  one anchor city per state (`domain/map/usStates.ts`; a test keeps every anchor on land). Routes are
+  straight ground lines warehouse → anchor. One pin per state. Sizes live in `MAP`.
+- **Trucks** (`domain/ship/trucks.ts`): one per warehouse + state + UTC ship day; unshipped orders
+  ride the state's loading truck on the dock. Colour = worst open order (late > at_risk > on_time);
+  a truck with no open orders is not drawn. Demo delays come by truck, never sprinkled per order.
 - **Delay** (`domain/ship/delay.ts`): `promised = promised_at ?? placed_at + sla_days`. Delivered →
   `on_time` / `delivered_late`. Otherwise, first match: `late` (now > promised) → `at_risk`
   (exception, inside risk window, stalled > stall_hours, unshipped > handling_days) → `on_time`.
   `days_late = ceil((ref − promised)/day)`. Remaining = `carrier_eta_at − now` or `null`
   ("No carrier ETA") — never invent a remaining time. Every result carries a `reason` string.
-- **Progress** (`domain/ship/progress.ts`): unshipped 0; delivered 1 then fade; in transit
-  `clamp((now − shipped)/(promised − shipped), 0, 0.95)`; late drones hold at 0.95 and pulse.
+- **Progress** (`domain/ship/progress.ts`, `trucks.ts`): loading 0; on the road
+  `clamp((now − departed)/(latest open promise − departed), 0, 0.95)`; late trucks hold at 0.95
+  and pulse; a truck fades when its last order is delivered.
 - **Alerts sort:** `late` by days late desc, then `at_risk`, then by order date.
 
 ## 3D scene and React
 
 - One `<Canvas>` in `app/_experience/Experience.tsx`; `MapControls` tilt 20°–70°; bloom on emissive
   parts only.
-- Instanced meshes for land, drones and pins; one shared clock uniform, not per-mesh `useFrame`.
-- Phone budget: DPR ≤ 1.25, no shadows, ≥ 30 fps; desktop DPR ≤ 2, ≥ 55 fps. Cap 2,000 drones/arcs
-  (show late + at-risk, count the rest). `prefers-reduced-motion`: no motion, no pulsing.
+- Instanced meshes for land, trucks and pins; one shared clock uniform, not per-mesh `useFrame`.
+- Phone budget: DPR ≤ 1.25, no shadows, ≥ 30 fps; desktop DPR ≤ 2, ≥ 55 fps. Cap 2,000 trucks
+  (show late + at-risk, count the rest); count badges ≤ 40. `prefers-reduced-motion`: no motion, no pulsing.
 - Motion = pure `step(state, dt)` in `domain/` + a hook in `features/` calling it from `useFrame`.
   Prove motion with `step()` tests via `renderHook`, not screenshots (automated Chrome is throttled).
 - `useEffect` only to sync with the outside world; derived values in render/`useMemo`; latest-callback
@@ -141,11 +144,12 @@ app → features → engine | platform | ui | config → domain
 - Use drei `Text` with the self-hosted font, not drei `Html` (React 19 unmount error).
 - Seed every random value drawn on both server and browser, or hydration differs.
 - Status colours: `on_time` cyan, `at_risk` amber, `late` red, `delivered_late` dim red — from the theme.
+- Trucks are plain boxes (cargo + cab), no wheels or logos.
 
 ## Testing
 
-- Every domain rule gets a test next to it. Cover the date-line arc, "no carrier ETA", out-of-order
-  events, and an order placed at 23:30 local time.
+- Every domain rule gets a test next to it. Cover truck grouping (worst status wins), "no carrier
+  ETA", out-of-order events, and an order placed at 23:30 local time.
 - Never call `Date.now()` in render or in `domain/`; pass `now` in.
 
 ## Working rules
@@ -155,7 +159,7 @@ app → features → engine | platform | ui | config → domain
 - Workflow: local (staging DB) → `staging` branch → owner OK → migration on production → `main`.
 - Stop and ask only for things outside the folder: Supabase/Vercel projects, `.env.local` keys, SQL
   to paste (give the file, the **project name** and the editor link — never production before
-  release), the Natural Earth land file (`scripts/data/`), email setup, or a real-phone check.
+  release), the Natural Earth files (`scripts/data/`), email setup, or a real-phone check.
 - Don't decide open owner questions (business vs calendar days, per-destination SLAs, split
   shipments): leave `TODO(owner)` and use the spec defaults.
 - Uploads capped at 4 MB (Vercel limit 4.5 MB); CSV ≤ 5,000 rows.

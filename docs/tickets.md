@@ -17,22 +17,25 @@ lint and build pass.
 
 ## [x] M1 — Rules and math
 
-`domain/map` (projection, arc, bounds), `domain/ship` (delay, progress), `domain/stock`
+`domain/map` (projection, route, bounds), `domain/ship` (delay, progress), `domain/stock`
 (available, low stock).
 
-**Done when:** every rule in spec §7, §8 and §10 has a test, including the date-line arc, "no
+**Done when:** every rule in spec §7, §8 and §10 has a test, including truck grouping, "no
 carrier ETA", out-of-order events and an order placed at 23:30 local time. No `Date.now()` in
 `domain/`.
 
 ## [ ] M2 — Static scene
 
-Bake land (`npm run bake:land`); draw the map from fixture data: warehouse, arcs, drones at their
-progress point in status colours, pins, legend, bloom, pan/zoom.
+Bake US land and state borders (`npm run bake:land`); draw the map from fixture data (~300
+orders a day): warehouse, roads, one truck per state per ship day at its progress point in its worst
+order's colour with a count badge, loading dock, state pins, truck card → orders → order detail,
+legend, bloom, pan/zoom.
 
 **Done when:** the map renders from fixtures and works at 375 px.
-**Progress:** scene, fixtures (every §3a delay story), legend and hover card done and checked on
-desktop. Open: 375 px layout check, warehouse tower scale.
-**Needs owner:** the Natural Earth 1:110m land file in `scripts/data/` if the download is blocked.
+**Progress:** 2026-10-06 reworked from world map + drones on arcs to US map + trucks (owner's call).
+Scene, fixtures (every §3a delay story), legend, truck hover and truck card done and checked on
+desktop. Open: 375 px layout check (automated Chrome would not resize), warehouse tower scale.
+**Needs owner:** Natural Earth 1:50m admin-1 shapefile in `scripts/data/` (done 2026-10-06).
 
 ## [ ] M3 — Database
 
@@ -40,7 +43,7 @@ desktop. Open: 375 px layout check, warehouse tower scale.
 from §3a.
 
 **Done when:** the owner has pasted the migration into **staging**; the seed creates one company,
-warehouse `W01`, 12 products, 36 variants, 300 orders over the last 30 days, the destination and
+warehouse `W01`, 12 products, 36 variants, about 300 orders a day over the last 30 days, the destination and
 carrier mix, every stock story and delay story; the same seed twice gives the same data; the map
 reads real data through the repos.
 **Needs owner:** Supabase staging project, `.env.local` keys, SQL paste.
@@ -79,9 +82,10 @@ a new event or one more day late; changing settings recolours the map.
 
 ## [ ] M8 — Motion
 
-Drones fly from their last point to the new one on refresh; late drones pulse; delivered drones fade.
+Trucks drive from their last point to the new one on refresh; late trucks pulse; a truck fades when
+its last order is delivered.
 
-**Done when:** all motion is proved with `step()` tests; reduced motion holds drones still; the phone
+**Done when:** all motion is proved with `step()` tests; reduced motion holds trucks still; the phone
 budget in §10 is met.
 **Needs owner:** a real-phone check (≥ 30 fps).
 
