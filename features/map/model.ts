@@ -5,6 +5,7 @@ import { makeRoute, routeHeading, routePoint, type Route } from "@/domain/map/ro
 import { usState, type StateCode } from "@/domain/map/usStates";
 import type { OrgRules } from "@/domain/org/settings";
 import { assessDelay, type Delay } from "@/domain/ship/delay";
+import { nextDayOrders, type NextDay } from "@/domain/ship/nextDay";
 import { deliveredPinVisible } from "@/domain/ship/progress";
 import { timingAsOf } from "@/domain/ship/replay";
 import { summarizeRegions, type RegionSummary } from "@/domain/ship/regions";
@@ -52,6 +53,8 @@ export type MapModel = {
   /** The loading dock per region: the map shows one region's trucks at a time, so each region
    * parks its loading trucks from the first slot. */
   yards: Record<Region, MapYard>;
+  /** Orders placed today that leave on tomorrow's trucks, per region. */
+  nextDay: NextDay;
 };
 
 export type MapOrigin = LatLng & { id: string };
@@ -145,5 +148,6 @@ export function buildMapModel(
     counts,
     regions: summarizeRegions(all),
     yards,
+    nextDay: nextDayOrders(orders.map((o) => ({ state: o.state, placedAt: o.timing.placedAt, shippedAt: o.shippedAt, deliveredAt: o.deliveredAt })), now),
   };
 }

@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { COMPANY_TIME_ZONE } from "@/config/map";
 import { REGIONS, REGION_NAME, type Region } from "@/domain/map/regions";
 import { usState } from "@/domain/map/usStates";
+import type { NextDay } from "@/domain/ship/nextDay";
 import { OPEN_STATUSES, type RegionSummary } from "@/domain/ship/regions";
+import { HOUR, localDayLabel } from "@/domain/time";
 import { STATUS_TOKEN } from "@/engine/colors";
 import { cssVar, type Look } from "@/ui/theme";
 import { regionCountsText, truckDelayShort, truckLeg } from "./loadText";
@@ -13,10 +16,18 @@ const MAX_ROWS = 8;
 
 const pct = (rate: number | null) => (rate === null ? "—" : `${Math.round(rate * 100)}%`);
 
-/** On-time rate per region. Opening a region draws its trucks on the map and lists its late and
- * at-risk ones; picking one opens its truck card. "Hide" folds it into a small button so the map is clear. */
+/** States named per region on the next-day tab; the rest are counted. */
+const MAX_STATES = 3;
+
+type Tab = "rate" | "nextDay";
+const TAB_LABEL: Record<Tab, string> = { rate: "On-time", nextDay: "Next day" };
+
+/** Two tabs per region. "On-time": opening a region draws its trucks on the map and lists its late
+ * and at-risk ones; picking one opens its truck card. "Next day": how many of today's orders each
+ * region gets on tomorrow's trucks. "Hide" folds it into a small button so the map is clear. */
 export function RegionPanel({
   regions,
+  nextDay,
   open,
   onToggle,
   onPick,
@@ -24,6 +35,7 @@ export function RegionPanel({
   onLook,
 }: {
   regions: Record<Region, RegionSummary<MapTruck>>;
+  nextDay: NextDay;
   open: Region | null;
   onToggle: (region: Region) => void;
   onPick: (truck: MapTruck) => void;
@@ -31,6 +43,7 @@ export function RegionPanel({
   onLook: (look: Look) => void;
 }) {
   const [hidden, setHidden] = useState(false);
+  const [tab, setTab] = useState<Tab>("rate");
   if (hidden) {
     return (
       <button
@@ -51,7 +64,20 @@ export function RegionPanel({
       className="ui-card pointer-events-auto absolute right-3 bottom-3 left-3 max-h-[32dvh] overflow-y-auto sm:top-3 sm:max-h-[calc(100dvh-1.5rem)] sm:bottom-auto sm:left-auto sm:w-80"
     >
       <div className="flex items-center justify-between gap-2 px-4 pt-4">
-        <p className="ui-label">On-time rate · click to open</p>
+        <div role="tablist" aria-label="Region view" className="ui-label flex shrink-0 rounded-lg border border-line p-0.5">
+          {(Object.keys(TAB_LABEL) as Tab[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={`rounded-md px-2 py-0.5 ${tab === t ? "bg-accent text-surface" : "hover:text-ink"}`}
+            >
+              {TAB_LABEL[t]}
+            </button>
+          ))}
+        </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <LookToggle look={look} onLook={onLook} />
           <button
@@ -67,39 +93,43 @@ export function RegionPanel({
           </button>
         </div>
       </div>
-      <ul className="mt-2 pb-2">
-        {REGIONS.map((r) => {
-          const s = regions[r];
-          const isOpen = open === r;
-          return (
-            <li key={r} className={`mx-2 border-t border-line first:border-t-0 ${isOpen ? "ui-selected rounded-xl border-transparent" : ""}`}>
-              <button
-                type="button"
-                onClick={() => onToggle(r)}
-                aria-expanded={isOpen}
-                className="ui-hover block w-full rounded-xl px-2 py-3 text-left"
-              >
-                <span className="flex items-baseline justify-between gap-3">
-                  <span className={`font-semibold ${isOpen ? "text-accent" : "text-ink"}`}>{REGION_NAME[r]}</span>
-                  <span className="font-medium text-ink tabular-nums">{pct(s.onTimeRate)}</span>
-                </span>
-                <span aria-hidden className="mt-2.5 flex h-1.5 gap-1 overflow-hidden rounded-full">
-                  {s.open > 0 &&
-                    OPEN_STATUSES.map((k) =>
-                      s.orders[k] > 0 ? (
-                        <span key={k} className="rounded-full" style={{ flexGrow: s.orders[k], background: cssVar(STATUS_TOKEN[k]) }} />
-                      ) : null,
-                    )}
-                </span>
-                <span className="mt-2 block text-sm text-muted">
-                  {regionCountsText(s.orders)} · {s.trucks} {s.trucks === 1 ? "truck" : "trucks"}
-                </span>
-              </button>
-              {isOpen && <Problems trucks={s.problems} onPick={onPick} />}
-            </li>
-          );
-        })}
-      </ul>
+      {tab === "nextDay" ? (
+        <NextDayList nextDay={nextDay} open={open} onToggle={onToggle} />
+      ) : (
+        <ul className="mt-2 pb-2">
+          {REGIONS.map((r) => {
+            const s = regions[r];
+            const isOpen = open === r;
+            return (
+              <li key={r} className={`mx-2 border-t border-line first:border-t-0 ${isOpen ? "ui-selected rounded-xl border-transparent" : ""}`}>
+                <button
+                  type="button"
+                  onClick={() => onToggle(r)}
+                  aria-expanded={isOpen}
+                  className="ui-hover block w-full rounded-xl px-2 py-3 text-left"
+                >
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className={`font-semibold ${isOpen ? "text-accent" : "text-ink"}`}>{REGION_NAME[r]}</span>
+                    <span className="font-medium text-ink tabular-nums">{pct(s.onTimeRate)}</span>
+                  </span>
+                  <span aria-hidden className="mt-2.5 flex h-1.5 gap-1 overflow-hidden rounded-full">
+                    {s.open > 0 &&
+                      OPEN_STATUSES.map((k) =>
+                        s.orders[k] > 0 ? (
+                          <span key={k} className="rounded-full" style={{ flexGrow: s.orders[k], background: cssVar(STATUS_TOKEN[k]) }} />
+                        ) : null,
+                      )}
+                  </span>
+                  <span className="mt-2 block text-sm text-muted">
+                    {regionCountsText(s.orders)} · {s.trucks} {s.trucks === 1 ? "truck" : "trucks"}
+                  </span>
+                </button>
+                {isOpen && <Problems trucks={s.problems} onPick={onPick} />}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </aside>
   );
 }
@@ -122,5 +152,55 @@ function Problems({ trucks, onPick }: { trucks: MapTruck[]; onPick: (truck: MapT
       ))}
       {trucks.length > MAX_ROWS && <li className="px-2 pt-1 text-xs text-muted">+{trucks.length - MAX_ROWS} more on the map</li>}
     </ul>
+  );
+}
+
+/** Tomorrow's orders per region with a share bar and the biggest states; a row opens its region. */
+function NextDayList({ nextDay, open, onToggle }: { nextDay: NextDay; open: Region | null; onToggle: (region: Region) => void }) {
+  // Noon UTC falls on the same date in New York, so the label names the right day.
+  const day = localDayLabel(nextDay.day + 12 * HOUR, COMPANY_TIME_ZONE);
+  return (
+    <div className="pb-2">
+      <p className="px-4 pt-3 text-sm text-muted">
+        Leaving <span className="text-ink">{day}</span> ·{" "}
+        <span className="font-medium text-ink tabular-nums">{nextDay.total.toLocaleString("en-US")}</span> orders placed so far today
+      </p>
+      <ul className="mt-1">
+        {REGIONS.map((r) => {
+          const n = nextDay.regions[r];
+          const isOpen = open === r;
+          const rest = n.states.length - MAX_STATES;
+          return (
+            <li key={r} className={`mx-2 border-t border-line first:border-t-0 ${isOpen ? "ui-selected rounded-xl border-transparent" : ""}`}>
+              <button type="button" onClick={() => onToggle(r)} aria-expanded={isOpen} className="ui-hover block w-full rounded-xl px-2 py-3 text-left">
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className={`font-semibold ${isOpen ? "text-accent" : "text-ink"}`}>{REGION_NAME[r]}</span>
+                  <span className="font-medium text-ink tabular-nums">
+                    {n.orders.toLocaleString("en-US")}
+                    <span className="ml-1.5 text-sm font-normal text-muted">{Math.round(n.share * 100)}%</span>
+                  </span>
+                </span>
+                <span aria-hidden className="mt-2.5 flex h-1.5 overflow-hidden rounded-full" style={{ background: cssVar("line") }}>
+                  <span className="rounded-full" style={{ width: `${n.share * 100}%`, background: cssVar("accent") }} />
+                </span>
+                <span className="mt-2 block truncate text-sm text-muted">
+                  {n.states.length === 0
+                    ? "No orders yet"
+                    : n.states
+                        .slice(0, MAX_STATES)
+                        .map((s) => `${s.state} ${s.orders}`)
+                        .join(" · ") + (rest > 0 ? ` · +${rest} ${rest === 1 ? "state" : "states"}` : "")}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {nextDay.waiting > 0 && (
+        <p className="px-4 pt-1 text-xs text-muted">
+          +{nextDay.waiting.toLocaleString("en-US")} earlier {nextDay.waiting === 1 ? "order" : "orders"} still waiting to ship
+        </p>
+      )}
+    </div>
   );
 }

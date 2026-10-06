@@ -157,6 +157,7 @@ export function MapScene({
       />
       <RegionPanel
         regions={model.regions}
+        nextDay={model.nextDay}
         open={region}
         onToggle={toggleRegion}
         onPick={(t) => setPicked({ key: t.key, order: null })}

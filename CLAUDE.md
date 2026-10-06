@@ -133,6 +133,9 @@ app → features → engine | platform | ui | config → domain
 - **Progress** (`domain/ship/progress.ts`, `trucks.ts`): loading 0; on the road
   `clamp((now − departed)/(latest open promise − departed), 0, 0.95)`; late trucks hold at 0.95
   and pulse; a truck fades when its last order is delivered.
+- **Next day** (`domain/ship/nextDay.ts`): orders placed today (UTC) and not shipped ride tomorrow's
+  trucks; the region panel's "Next day" tab counts them per region with the biggest states, and
+  counts older unshipped orders apart. `TODO(owner)`: a same-day cut-off.
 - **Alerts sort:** `late` by days late desc, then `at_risk`, then by order date.
 
 ## 3D scene and React
