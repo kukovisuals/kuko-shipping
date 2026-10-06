@@ -1,12 +1,12 @@
-import { BRAND } from "@/domain/brand";
+import { connection } from "next/server";
+import { Experience } from "@/app/_experience/Experience";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
-      <h1 className="font-pixel text-3xl text-accent sm:text-5xl">{BRAND.product}</h1>
-      <p className="ui-label">{BRAND.demoClient} · concept demo</p>
-      <p className="max-w-md text-muted">The 3D shipping map arrives in M2.</p>
-      <p className="max-w-md text-sm text-muted">{BRAND.disclaimer}</p>
-    </main>
-  );
+/** One `now` per request (Next 16: `connection()` opts the page out of prerendering). */
+async function requestNow(): Promise<number> {
+  await connection();
+  return Date.now();
+}
+
+export default async function Home() {
+  return <Experience now={await requestNow()} />;
 }

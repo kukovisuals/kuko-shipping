@@ -30,6 +30,8 @@ Bake land (`npm run bake:land`); draw the map from fixture data: warehouse, arcs
 progress point in status colours, pins, legend, bloom, pan/zoom.
 
 **Done when:** the map renders from fixtures and works at 375 px.
+**Progress:** scene, fixtures (every §3a delay story), legend and hover card done and checked on
+desktop. Open: 375 px layout check, warehouse tower scale.
 **Needs owner:** the Natural Earth 1:110m land file in `scripts/data/` if the download is blocked.
 
 ## [ ] M3 — Database

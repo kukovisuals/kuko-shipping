@@ -70,6 +70,8 @@ Silkscreen (titles, buttons) and Space Grotesk (body, tables), latin subset, sel
 | 2026-10-05 | Pins merge transitively (any two points < 0.5° apart join), using a 0.5° grid. | Greedy "join the first pin" split one city's orders into several pins depending on order. |
 | 2026-10-05 | Low stock = on hand ≤ reorder point; out = 0 on hand; reorder point 0 = never low. | Usual meaning of a reorder point; the spec says "below" without saying strict. |
 | 2026-10-05 | Movement sign checks: received/returned > 0, shipped < 0 and needs a shipment id; adjusted/counted either way. | Catches a mistyped sign in the movement form before it reaches the ledger. |
+| 2026-10-06 | The map page uses `await connection()` instead of `dynamic = "force-dynamic"`. | Next 16 docs drop `dynamic` from route-segment config (removed under Cache Components); `connection()` is the documented way to render per request. |
+| 2026-10-06 | `.gitignore` also covers keys, certificates, Supabase/Vercel local state and DB dumps. | Secrets for Supabase, Resend and Vercel arrive from M3 on; nothing sensitive may reach a remote. |
 | 2026-10-05 | `deliveredAt` comes from the first `delivered` scan; ETA from the latest event that carries one. | Events arrive out of order; everything is decided by `at`. |
 
 ## Open questions for the owner

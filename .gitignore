@@ -8,14 +8,49 @@ build/
 next-env.d.ts
 *.tsbuildinfo
 
-# env — never commit secrets
+# env — never commit secrets (Supabase service role, Resend, Shopify tokens live here)
 .env*
 !.env.example
 
-# misc
+# keys, certificates and credential files
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+*.secret
+*.secrets
+secrets/
+credentials*.json
+service-account*.json
+
+# platform state that can hold project refs or tokens
+.vercel/
+supabase/.temp/
+supabase/.branches/
+supabase/.env*
+
+# database dumps and exports (can hold real data)
+*.dump
+*.sql.gz
+*.backup
+dumps/
+
+# local tooling and editors
+.claude/settings.local.json
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs and misc
 .DS_Store
-.vercel
 coverage/
+*.log
 npm-debug.log*
 
 # land-map source the owner drops in (spec §12.3)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAY, HOUR, localDate, localDateTime, parseIso, toIso } from "./time";
+import { DAY, HOUR, describeDuration, localDate, localDateTime, parseIso, toIso } from "./time";
 
 const NY = "America/New_York";
 
@@ -34,5 +34,18 @@ describe("local display", () => {
 
   it("has the expected units", () => {
     expect(DAY).toBe(24 * HOUR);
+  });
+});
+
+describe("describeDuration", () => {
+  it("reads minutes, hours, then days and hours", () => {
+    expect(describeDuration(45 * 60_000)).toBe("45 min");
+    expect(describeDuration(20 * HOUR)).toBe("20 h");
+    expect(describeDuration(2 * DAY + 4 * HOUR)).toBe("2 d 4 h");
+    expect(describeDuration(3 * DAY)).toBe("3 d");
+  });
+
+  it("never shows a negative time", () => {
+    expect(describeDuration(-HOUR)).toBe("0 min");
   });
 });

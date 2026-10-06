@@ -44,3 +44,14 @@ export function localDateTime(ms: Ms, timeZone: string): string {
   const p = parts(ms, timeZone);
   return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
 }
+
+/** "45 min", "20 h", "2 d 4 h" — for remaining times. Negative durations read as 0. */
+export function describeDuration(ms: Ms): string {
+  const minutes = Math.max(0, Math.round(ms / 60_000));
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} h`;
+  const d = Math.floor(hours / 24);
+  const h = hours % 24;
+  return h ? `${d} d ${h} h` : `${d} d`;
+}
