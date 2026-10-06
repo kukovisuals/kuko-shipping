@@ -34,7 +34,7 @@ legend, bloom, pan/zoom.
 **Done when:** the map renders from fixtures and works at 375 px.
 **Progress:** 2026-10-06 reworked from world map + drones on arcs to US map + trucks (owner's call).
 Scene, fixtures (every §3a delay story), legend, truck hover and truck card done and checked on
-desktop. Open: 375 px layout check (automated Chrome would not resize), warehouse tower scale.
+desktop. Open: 375 px layout check (automated Chrome would not resize), warehouse dot size.
 **Needs owner:** Natural Earth 1:50m admin-1 shapefile in `scripts/data/` (done 2026-10-06).
 
 ## [ ] M3 — Database

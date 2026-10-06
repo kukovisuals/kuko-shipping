@@ -539,7 +539,7 @@ to 20°–70°), `Atmosphere`, `Effects`.
 | Piece | How |
 |-------|-----|
 | Sea + land | Sea floor; the state outlines from `us.json` extruded into one solid slab (`MAP.landHeight`, side walls in `solidShade`); thin state borders |
-| Warehouse | A box tower at its lat/lng; height from total units on hand (log scale, 2–10 units); a ring at its base turns amber when any variant there is low, red when any is out |
+| Warehouse | A small flat dot on the land at its lat/lng; a ring around it turns amber when any variant there is low, red when any is out. Its name is the page title, fixed top-left (HTML, not 3D) |
 | Region rings | One per closed region at `REGION_HUB`, facing the camera: a donut of its open orders split on time / at risk / late, the count in the middle, the region name above, "All on time" or "N trucks need a look" below. Click to open. Shrink to 55 % while another region is open |
 | Roads | One curved line per state with a truck on the road in the open region, in its worst truck's status colour |
 | Callouts | "Denver · 3d late" over the anchor city of each state with a late or at-risk truck in the open region, worst first, at most 8 |
@@ -547,7 +547,7 @@ to 20°–70°), `Atmosphere`, `Effects`.
 | Badges | drei `Text` with the order count over the biggest loads on the road (≥ 10 orders, at most 40) and over the hovered or picked truck |
 | Dock | A pad off the coast where loading trucks park, labelled with the orders waiting |
 | Destination pins | One thin post per state; height by count (log) |
-| Labels | drei `Text` with the self-hosted font: warehouse name, badges, dock |
+| Labels | drei `Text` with the self-hosted font: badges, dock |
 | Legend | One line at the bottom (top on phones): each status colour with its order count, trucks on the road and loading, "truck colour = its worst order · positions are estimates". No other info card: the region panel is the only panel |
 | Region panel | 2D overlay (right on desktop, bottom on phones): "On-time rate · click to open", one card per region with its rate, a stacked status bar and "3 late · 2 at risk · 7 on time"; the open region lists its problem trucks (city, ship day, "3d late" / "at risk"); picking one opens its truck card |
 | Bloom | `EffectComposer` + `Bloom` (threshold 1, intensity 1.1, mipmap blur) on emissive parts only — Dark look only |

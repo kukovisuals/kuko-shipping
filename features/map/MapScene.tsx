@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import { MAP_CONFIG } from "@/config/map";
 import { MAP } from "@/domain/map/project";
 import type { Region } from "@/domain/map/regions";
-import { towerHeight } from "@/domain/map/scale";
 import type { StateCode } from "@/domain/map/usStates";
 import { Atmosphere } from "@/engine/Atmosphere";
 import { STATUS_TOKEN } from "@/engine/colors";
@@ -115,6 +114,9 @@ export function MapScene({
           <Effects />
         </Canvas>
       </PaletteProvider>
+      <h1 className="pointer-events-none absolute top-3 left-3 max-w-[calc(100%-1.5rem)] truncate text-lg font-semibold text-ink sm:text-xl">
+        {warehouse.name}
+      </h1>
       <Legend
         counts={model.counts}
         onRoad={model.trucks.filter((t) => !t.loading).length}
@@ -190,7 +192,7 @@ function Fleet({
   const yard = region ? model.yards[region] : null;
   return (
     <>
-      <Warehouse at={warehouse} name={warehouse.name} height={towerHeight(warehouse.units)} flag={warehouse.flag} />
+      <Warehouse at={warehouse} y={ground} flag={warehouse.flag} />
       <Trucks trucks={trucks} onHover={onHover} onSelect={onSelect} />
       {badges.map((t) => (
         <Label
