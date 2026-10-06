@@ -543,7 +543,7 @@ to 20°–70°), `Atmosphere`, `Effects`.
 | Region rings | One per closed region at `REGION_HUB`, facing the camera: a donut of its open orders split on time / at risk / late, the count in the middle, the region name above, "All on time" or "N trucks need a look" below. Click to open. Shrink to 55 % while another region is open |
 | Roads | One curved line per state with a truck on the road in the open region, in its worst truck's status colour |
 | Callouts | "Denver · 3d late" over the anchor city of each state with a late or at-risk truck in the open region, worst first, at most 8 |
-| Trucks | Two **instanced** meshes (cargo box in the status colour, plain cab); `on_time` blue, `at_risk` amber, `late` red; late trucks pulse (M8) |
+| Trucks | One **instanced** mesh of plain cubes in the status colour; `on_time` blue, `at_risk` amber, `late` red; late trucks pulse (M8) |
 | Badges | drei `Text` with the order count over the biggest loads on the road (≥ 10 orders, at most 40) and over the hovered or picked truck |
 | Dock | A pad off the coast where loading trucks park, labelled with the orders waiting |
 | Destination pins | One flat grey disc with a soft halo per state; radius by count (log) |
@@ -570,6 +570,9 @@ tracking link, placed / shipped / promised dates, status and reason, days late, 
 
 - `useEffect` only to sync with something outside React. Click results go in the handler; derived
   values in render or `useMemo`; "latest callback" refs become `useEffectEvent`.
+- Replay: a bar over the map plays the last 7 days back (play/pause, slider, 1×/2×/4×, Live). The
+  map is rebuilt as it stood at each moment (orders placed and scans seen by then); pressing Play
+  with no region open opens the busiest one. Under reduced motion only the slider moves time.
 - Motion lives in a pure `step(state, dt)` in `domain/` and a hook in `features/` that calls it
   from `useFrame`. Test it with `renderHook`, frame by frame.
 

@@ -5,8 +5,11 @@ import { Canvas } from "@react-three/fiber";
 import { useEffect, useMemo, useState } from "react";
 import { MAP_CONFIG } from "@/config/map";
 import { MAP } from "@/domain/map/project";
-import type { Region } from "@/domain/map/regions";
+import { REGIONS, type Region } from "@/domain/map/regions";
 import type { StateCode } from "@/domain/map/usStates";
+import type { OrgRules } from "@/domain/org/settings";
+import { REPLAY_SPEEDS, liveReplay, playReplay, replayFrame, seekReplay } from "@/domain/ship/replay";
+import type { Ms } from "@/domain/time";
 import { Atmosphere } from "@/engine/Atmosphere";
 import { STATUS_TOKEN } from "@/engine/colors";
 import { Dock } from "@/engine/Dock";
@@ -16,34 +19,49 @@ import { Label } from "@/engine/Label";
 import { PaletteProvider, usePalette } from "@/engine/palette";
 import { Pins } from "@/engine/Pins";
 import { TRUCK, Trucks } from "@/engine/Trucks";
-import { usePhone } from "@/engine/useMedia";
+import { usePhone, useReducedMotion } from "@/engine/useMedia";
 import { Warehouse } from "@/engine/Warehouse";
 import type { Look } from "@/ui/theme";
 import type { LayerProps, MapLand, MapWarehouse } from "./layers";
 import { Legend } from "./Legend";
-import type { MapModel, MapTruck } from "./model";
+import { buildMapModel, shipmentsAsOf, type MapShipment, type MapTruck } from "./model";
 import { RegionLayer } from "./RegionLayer";
 import { RegionPanel } from "./RegionPanel";
+import { ReplayBar } from "./ReplayBar";
 import { TruckCard, TruckHover } from "./TruckCard";
+import { useReplayClock } from "./useReplayClock";
 
 export type { MapLand, MapWarehouse } from "./layers";
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
 export function MapScene({
-  model,
+  shipments,
+  rules,
+  now,
   land,
   warehouse,
   look,
   onLook,
 }: {
-  model: MapModel;
+  shipments: readonly MapShipment[];
+  rules: OrgRules;
+  now: Ms;
   land: MapLand;
   warehouse: MapWarehouse;
   look: Look;
   onLook: (look: Look) => void;
 }) {
   const phone = usePhone();
+  const reducedMotion = useReducedMotion();
+  // Live by default; the replay bar plays the last week back and the map is rebuilt as it stood then.
+  const [replay, setReplay] = useState(() => liveReplay(now));
+  if (replay.to !== now) setReplay(liveReplay(now));
+  const frame = replayFrame(replay);
+  const model = useMemo(
+    () => buildMapModel(frame === now ? shipments : shipmentsAsOf(shipments, frame), warehouse, rules, frame),
+    [shipments, warehouse, rules, frame, now],
+  );
   // One region's trucks at a time, so the country never fills with every truck at once.
   const [region, setRegion] = useState<Region | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -97,6 +115,7 @@ export function MapScene({
           camera={{ position: [camera.target[0] + camera.offset[0], camera.offset[1], camera.target[2] + camera.offset[2]], fov: camera.fov, near: 0.3, far: 900 }}
           onPointerMissed={() => setPicked(null)}
         >
+          <ReplayClock playing={replay.playing} reducedMotion={reducedMotion} setReplay={setReplay} />
           <Atmosphere />
           <RegionLayer {...layer} />
           <Fleet layer={layer} warehouse={warehouse} hovered={hovered} selected={selected} onHover={setHover} onSelect={(i) => setPicked({ key: drawn[i].key, order: null })} />
@@ -117,6 +136,19 @@ export function MapScene({
       <h1 className="pointer-events-none absolute top-3 left-3 max-w-[calc(100%-1.5rem)] truncate text-lg font-semibold text-ink sm:text-xl">
         {warehouse.name}
       </h1>
+      <ReplayBar
+        replay={replay}
+        reducedMotion={reducedMotion}
+        onPlay={() => {
+          // Trucks are drawn for the open region only, so open the busiest one if none is open.
+          if (!region) setRegion(REGIONS.reduce((a, b) => (model.regions[b].open > model.regions[a].open ? b : a)));
+          setReplay(playReplay);
+        }}
+        onPause={() => setReplay((r) => ({ ...r, playing: false }))}
+        onSeek={(at) => setReplay((r) => seekReplay({ ...r, playing: false }, at))}
+        onSpeed={() => setReplay((r) => ({ ...r, speed: REPLAY_SPEEDS[(REPLAY_SPEEDS.indexOf(r.speed) + 1) % REPLAY_SPEEDS.length] }))}
+        onLive={() => setReplay((r) => ({ ...liveReplay(now), speed: r.speed }))}
+      />
       <Legend
         counts={model.counts}
         onRoad={model.trucks.filter((t) => !t.loading).length}
@@ -143,6 +175,12 @@ export function MapScene({
       )}
     </div>
   );
+}
+
+/** Steps the replay from the render loop (must sit inside the Canvas). */
+function ReplayClock({ playing, reducedMotion, setReplay }: { playing: boolean; reducedMotion: boolean; setReplay: Parameters<typeof useReplayClock>[2] }) {
+  useReplayClock(playing, reducedMotion, setReplay);
+  return null;
 }
 
 /** The fleet on top of the map: the warehouse, the open region's trucks with their badges, its
@@ -198,7 +236,7 @@ function Fleet({
         <Label
           key={t.key}
           text={String(t.orders.length)}
-          position={[t.position.x, ground + TRUCK.clearance + TRUCK.height + 0.12, t.position.z]}
+          position={[t.position.x, ground + TRUCK.size + 0.3, t.position.z]}
           size={0.55}
           color={STATUS_TOKEN[t.status]}
         />

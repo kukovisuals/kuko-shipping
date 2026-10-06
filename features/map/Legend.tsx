@@ -17,7 +17,7 @@ export function Legend({
   return (
     <section
       aria-label="Legend"
-      className="ui-card pointer-events-none absolute top-11 left-3 max-w-[calc(100%-1.5rem)] px-4 py-2 text-xs sm:top-auto sm:bottom-3 sm:max-w-[calc(100%-24rem)]"
+      className="ui-card pointer-events-none absolute top-24 left-3 max-w-[calc(100%-1.5rem)] px-4 py-2 text-xs sm:top-auto sm:bottom-3 sm:max-w-[calc(100%-24rem)]"
     >
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
         {DELAY_STATUSES.map((s) => (

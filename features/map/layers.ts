@@ -3,7 +3,7 @@ import type { StockFlag } from "@/domain/stock/lowStock";
 import type { LatLng } from "@/domain/map/project";
 import type { MapModel, MapTruck } from "./model";
 
-export type MapWarehouse = LatLng & { name: string; units: number; flag: StockFlag };
+export type MapWarehouse = LatLng & { id: string; name: string; units: number; flag: StockFlag };
 export type MapLand = {
   bounds: { west: number; east: number; south: number; north: number };
   /** State outlines as [lng, lat] rings. */

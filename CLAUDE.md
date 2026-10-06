@@ -158,7 +158,9 @@ app → features → engine | platform | ui | config → domain
 - Only one information panel (the region panel, right), which can be hidden to an "On-time rate" button;
   the legend is a single line at the bottom.
 - Style follows the clean reference: solid land slab, donut rings, rounded cards, soft shadows, round dots.
-- Trucks are plain boxes (cargo + cab), no wheels or logos.
+- Trucks are one plain cube in the status colour, no cab, wheels or logos.
+- **Replay** (`domain/ship/replay.ts`): a bar plays the last 7 days back (a day per 4 s at 1×, 2×/4×);
+  the map is rebuilt from `shipmentsAsOf(shipments, at)` once per 10 simulated minutes. Reduced motion: slider only.
 
 ## Testing
 

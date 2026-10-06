@@ -9,7 +9,7 @@ import { DAY } from "@/domain/time";
 import us from "@/public/map/us.json";
 import { STATE_SHARES, demoShipments, demoWarehouse } from "./fixtures";
 import { truckSummary } from "./loadText";
-import { buildMapModel } from "./model";
+import { buildMapModel, shipmentsAsOf } from "./model";
 
 const NOW = Date.UTC(2026, 9, 6, 15); // any fixed time: fixtures are relative to it
 const shipments = demoShipments(NOW);
@@ -157,6 +157,38 @@ describe("buildMapModel regions", () => {
       expect(model.yards[r].trucks).toBe(loading.length);
       const xs = loading.map((t) => t.position.x);
       if (xs.length) expect(Math.min(...xs)).toBeCloseTo(demoWarehouse.lng + 3.4, 6);
+    }
+  });
+});
+
+describe("replaying the week", () => {
+  const DISPATCH = Date.UTC(2026, 9, 2, 19); // a daily 19:00 UTC dispatch
+  const at = (t: number) => buildMapModel(shipmentsAsOf(shipments, t), demoWarehouse, DEFAULT_RULES, t);
+
+  it("is the live map at the live moment", () => {
+    expect(at(NOW)).toEqual(model);
+  });
+
+  it("drops orders placed later and scans not seen yet", () => {
+    const then = NOW - 3 * DAY;
+    const asOf = shipmentsAsOf(shipments, then);
+    expect(asOf.length).toBeLessThan(shipments.length);
+    for (const s of asOf) {
+      expect(s.timing.placedAt).toBeLessThanOrEqual(then);
+      for (const e of s.events) expect(e.at).toBeLessThanOrEqual(then);
+    }
+  });
+
+  it("sends the day's loads out of the dock at dispatch and moves them on", () => {
+    const before = at(DISPATCH - 1);
+    const after = at(DISPATCH + 1);
+    const later = at(DISPATCH + 12 * 60 * 60_000);
+    const leaving = after.trucks.filter((t) => !t.loading && t.departedAt === DISPATCH);
+    expect(leaving.length).toBeGreaterThan(20);
+    expect(before.trucks.filter((t) => t.loading).length).toBeGreaterThan(after.trucks.filter((t) => t.loading).length);
+    for (const t of leaving) {
+      const next = later.trucks.find((x) => x.key === t.key);
+      if (next) expect(next.progress).toBeGreaterThan(t.progress);
     }
   });
 });

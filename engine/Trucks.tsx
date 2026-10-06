@@ -1,27 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { BoxGeometry, Object3D, type BufferGeometry, type Color, type InstancedMesh } from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { BoxGeometry, Object3D, type Color, type InstancedMesh } from "three";
 import type { Vec3 } from "@/domain/map/project";
-import { usePalette } from "@/engine/palette";
 
-// A box truck, nose along +X: a cargo box in the status colour and a plain cab. No wheels, no logos.
-export const TRUCK = { length: 0.8, width: 0.32, height: 0.34, cabLength: 0.24, clearance: 0.16 } as const;
-
-function parts(): { cargo: BufferGeometry; cab: BufferGeometry } {
-  const { length, width, height, cabLength, clearance } = TRUCK;
-  const cargoLength = length - cabLength - 0.03;
-  const cargo = new BoxGeometry(cargoLength, height, width).translate(-length / 2 + cargoLength / 2, clearance + height / 2, 0);
-  const cabBody = new BoxGeometry(cabLength, height * 0.72, width * 0.92).translate(length / 2 - cabLength / 2, clearance + height * 0.36, 0);
-  const chassis = new BoxGeometry(length, 0.06, width * 0.8).translate(0, clearance - 0.03, 0);
-  const cab = mergeGeometries([cabBody, chassis]);
-  cabBody.dispose();
-  chassis.dispose();
-  return { cargo, cab };
-}
+// A truck is one plain cube in its status colour, sitting on the ground. No cab, wheels or logos.
+export const TRUCK = { size: 0.42 } as const;
 
 export type TruckInstance = { position: Vec3; heading: number; color: Color };
 
-/** All trucks as two instanced meshes (cargo + cab). Hover and click report the truck's index. */
+/** All trucks as one instanced mesh of cubes. Hover and click report the truck's index. */
 export function Trucks({
   trucks,
   onHover,
@@ -31,33 +17,27 @@ export function Trucks({
   onHover?: (index: number | null) => void;
   onSelect?: (index: number) => void;
 }) {
-  const { colors } = usePalette();
-  const cargoRef = useRef<InstancedMesh>(null);
-  const cabRef = useRef<InstancedMesh>(null);
-  const geometry = useMemo(() => parts(), []);
-  useEffect(() => () => {
-    geometry.cargo.dispose();
-    geometry.cab.dispose();
-  }, [geometry]);
+  const ref = useRef<InstancedMesh>(null);
+  const geometry = useMemo(() => new BoxGeometry(TRUCK.size, TRUCK.size, TRUCK.size).translate(0, TRUCK.size / 2, 0), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  // Room in steps of a power of two, so a replay's changing truck count doesn't rebuild the mesh.
+  const capacity = Math.max(64, 2 ** Math.ceil(Math.log2(Math.max(1, trucks.length))));
 
   useLayoutEffect(() => {
-    const cargo = cargoRef.current;
-    const cab = cabRef.current;
-    if (!cargo || !cab) return;
+    const mesh = ref.current;
+    if (!mesh) return;
     const o = new Object3D();
     trucks.forEach(({ position: p, heading, color }, i) => {
       o.position.set(p.x, p.y, p.z);
       o.rotation.set(0, heading, 0);
       o.updateMatrix();
-      cargo.setMatrixAt(i, o.matrix);
-      cab.setMatrixAt(i, o.matrix);
-      cargo.setColorAt(i, color);
+      mesh.setMatrixAt(i, o.matrix);
+      mesh.setColorAt(i, color);
     });
-    for (const mesh of [cargo, cab]) {
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingSphere();
-    }
-    if (cargo.instanceColor) cargo.instanceColor.needsUpdate = true;
+    mesh.count = trucks.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
   }, [trucks]);
 
   if (trucks.length === 0) return null;
@@ -73,13 +53,8 @@ export function Trucks({
     },
   };
   return (
-    <group>
-      <instancedMesh key={`cargo-${trucks.length}`} ref={cargoRef} args={[geometry.cargo, undefined, trucks.length]} {...handlers}>
-        <meshBasicMaterial toneMapped={false} />
-      </instancedMesh>
-      <instancedMesh key={`cab-${trucks.length}`} ref={cabRef} args={[geometry.cab, undefined, trucks.length]} {...handlers}>
-        <meshStandardMaterial color={colors.botBone} />
-      </instancedMesh>
-    </group>
+    <instancedMesh key={capacity} ref={ref} args={[geometry, undefined, capacity]} {...handlers}>
+      <meshBasicMaterial toneMapped={false} />
+    </instancedMesh>
   );
 }

@@ -6,6 +6,7 @@ import { usState, type StateCode } from "@/domain/map/usStates";
 import type { OrgRules } from "@/domain/org/settings";
 import { assessDelay, type Delay } from "@/domain/ship/delay";
 import { deliveredPinVisible } from "@/domain/ship/progress";
+import { timingAsOf } from "@/domain/ship/replay";
 import { summarizeRegions, type RegionSummary } from "@/domain/ship/regions";
 import { DELAY_STATUSES, type DelayStatus } from "@/domain/ship/status";
 import { loadTrucks, type Truck } from "@/domain/ship/trucks";
@@ -76,6 +77,14 @@ function yardBox(origin: LatLng, count: number) {
     south: Math.min(first.lat, last.lat) - margin,
     north: Math.max(first.lat, last.lat) + margin,
   };
+}
+
+/** The shipments as they stood at `at`: unplaced orders dropped, later scans not yet seen. */
+export function shipmentsAsOf(shipments: readonly MapShipment[], at: Ms): MapShipment[] {
+  return shipments.flatMap((s) => {
+    const timing = timingAsOf(s, at);
+    return timing ? [{ ...s, timing, events: s.events.filter((e) => e.at <= at) }] : [];
+  });
 }
 
 /** Everything the map draws, worked out once per `now`. */
