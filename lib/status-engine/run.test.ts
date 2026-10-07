@@ -45,11 +45,14 @@ describe('engine job', () => {
       ],
     })
 
-    await runEngine(db, { now: NOW, lateRule: 'B' })
+    await runEngine(db, { now: NOW, lateRule: 'B', where: { assignedLocationId: locationId } })
 
     const a = await db.order.findUniqueOrThrow({ where: { id: late.id } })
     expect(a).toMatchObject({ region: 'WEST', stage: 'ORDERED', timing: 'LATE', daysLate: 3, computedAt: NOW })
     const b = await db.order.findUniqueOrThrow({ where: { id: shipped.id } })
     expect(b).toMatchObject({ region: 'SOUTH', stage: 'IN_TRANSIT', timing: 'ON_TIME', daysLate: 0 })
+
+    // The scoped run touched only this test's orders, not any other data in the database.
+    expect(await db.order.count({ where: { computedAt: NOW } })).toBe(2)
   })
 })

@@ -1,16 +1,18 @@
 // The engine job. The ONLY writer of derived fields (region, stage, timing, daysLate, computedAt).
 // It reads orders, calls the pure computeStatus, and writes the result back.
 
-import type { PrismaClient } from '../../app/generated/prisma/client'
+import type { Prisma, PrismaClient } from '../../app/generated/prisma/client'
 import { computeStatus, type LateRule } from './index'
 
 const CHUNK = 200
 
 export async function runEngine(
   db: PrismaClient,
-  { now = new Date(), lateRule }: { now?: Date; lateRule: LateRule },
+  { now = new Date(), lateRule, where }: { now?: Date; lateRule: LateRule; where?: Prisma.OrderWhereInput },
 ): Promise<{ updated: number }> {
+  // `where` limits the run to some orders (tests use it to leave real data alone). The job passes none.
   const orders = await db.order.findMany({
+    where,
     select: {
       id: true,
       createdAt: true,
