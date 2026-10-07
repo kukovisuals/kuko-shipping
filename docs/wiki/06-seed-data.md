@@ -32,7 +32,7 @@ Packed is what is left: orders − backorder − in transit. The per-region in-t
 - **In transit** orders have one shipment that went through pickup and `IN_TRANSIT` (some also `OUT_FOR_DELIVERY`).
 - **Late orders** are always Packed or In transit, 8 to 14 days old, with a carrier estimate already past. **On-time orders** are under 6.5 days old, with an estimate still ahead. So rule A and rule B give the same answer on every order (OPEN-04 does not change the numbers).
 - **No problem events** (`DELAYED`, …): at-risk is not built (OPEN-02).
-- **Destinations:** about 65 real cities, weighted by size. AK and HI are included for the map insets. Region comes from the state (OPEN-05).
+- **Destinations:** the 51 state capitals (50 states + DC), one per state, weighted by the state's population (D-010). AK and HI are included for the map insets. Region comes from the state (OPEN-05).
 - Order names run `#48210`, `#48211`, … oldest first. Ids are readable: `ord-48210`, `shp-48210`, `evt-48210-1`.
 
 ## Invariants (the seed fails if any break)
