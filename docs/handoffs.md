@@ -26,3 +26,8 @@ Why:     The DOM pieces and store are done; callouts ① and ② only work end t
 Contract: `useStore` from lib/store (`selectedRegion`, `pipelineCollapsed`); `usePrefersReducedMotion()` from lib/hooks/usePrefersReducedMotion: when true, jump to the end state with no tween. `RegionCard` props: `{ name: string; count: number; onTime: number; late: number; dimmed?: boolean }`; pass `dimmed = selectedRegion !== null && selectedRegion !== region.id`.
 
 DONE  3D → Frontend: callouts ① and ② are wired. `StoreButton` is pinned over the Store circle and collapses Ordered and Packed into a box with a total; `RegionCard` is mounted per region (DOM overlay in `CanvasLayer`); selecting a region fades the other regions on the map and their cards; reduced motion jumps to the end state. Escape and Tab/Enter were already in place.
+
+HANDOFF  from: QA  to: Frontend
+Need:    Let `SHOW_PIPELINE` in app/page.tsx be switched by an environment variable (for example `NEXT_PUBLIC_SHOW_PIPELINE === 'true'`), default still hidden.
+Why:     Must-pass check 4 (click Store) needs the pipeline on. Today it is skipped, and running it means editing the source by hand. With an env switch, Playwright's web server could start with it on and the check runs on every `npm run test:e2e`.
+Contract: default unchanged (hidden). e2e/must-pass.spec.ts is already skipped unless `E2E_PIPELINE=1`; playwright.config.ts would pass `NEXT_PUBLIC_SHOW_PIPELINE=true` to `next build` when that is set.
