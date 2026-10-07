@@ -19,3 +19,8 @@ Why:     The map now draws one bead per order day (D-011); the legend still show
 Contract: components/dom/Legend — shapes match mapShapes.ts beadGeometry (disc) and lateBeadGeometry (ring, inner radius 0.5).
 
 DONE  Frontend → 3D: Legend "Order" is now "Order day": solid disc (on time), ring in the late color (inner radius 0.5, as lateBeadGeometry), and a small note "size = orders that day".
+
+HANDOFF  from: Frontend  to: 3D
+Need:    (1) Mount `<StoreButton />` (components/dom/PipelineLabels.tsx) at the Store circle in Pipeline.tsx in place of `<CircleLabel text="Store" />`, with pointer events on (the `Label` wrapper sets `pointerEvents: 'none'`). (2) When `useStore(s => s.pipelineCollapsed)` is true, collapse Ordered and Packed into one count each, ~300 ms. (3) Mount one `<RegionCard name count onTime late dimmed />` per region over the map from `useSummary().regions`. (4) Fade the other regions on the map when `selectedRegion` is set.
+Why:     The DOM pieces and store are done; callouts ① and ② only work end to end once the scene reacts. Sidebar click, late list, and Escape already work.
+Contract: `useStore` from lib/store (`selectedRegion`, `pipelineCollapsed`); `usePrefersReducedMotion()` from lib/hooks/usePrefersReducedMotion: when true, jump to the end state with no tween. `RegionCard` props: `{ name: string; count: number; onTime: number; late: number; dimmed?: boolean }`; pass `dimmed = selectedRegion !== null && selectedRegion !== region.id`.

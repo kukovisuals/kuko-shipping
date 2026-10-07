@@ -13,6 +13,10 @@ export default function Sidebar() {
 
   return (
     <nav className="sidebar" aria-label="Regions">
+      <p className="callout-hint">
+        <span className="callout" aria-hidden="true">②</span>
+        Click a region for its late orders
+      </p>
       {REGIONS.map(({ id, name }) => {
         const row = data?.regions.find((r) => r.id === id)
         return (

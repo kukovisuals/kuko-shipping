@@ -2,6 +2,7 @@
 
 import { REGIONS } from '@/lib/regions'
 import { useLateOrders } from '@/lib/hooks/useLateOrders'
+import { useCloseOnEscape } from '@/lib/hooks/useCloseOnEscape'
 import { useStore } from '@/lib/store'
 import { fmt } from './format'
 
@@ -9,6 +10,7 @@ export default function LateList() {
   const region = useStore((s) => s.selectedRegion)
   const selectRegion = useStore((s) => s.selectRegion)
   const { data, error } = useLateOrders(region)
+  useCloseOnEscape()
 
   if (!region) return null
   const name = REGIONS.find((r) => r.id === region)?.name ?? region

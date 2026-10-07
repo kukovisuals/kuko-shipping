@@ -355,3 +355,67 @@ button {
 .pl-note { font-size: 10px; color: var(--muted); }
 .pl-stage { font-size: 10px; letter-spacing: 0.14em; color: var(--muted); }
 .pl-circle { font-size: 15px; font-weight: 600; color: var(--ink); }
+
+/* ---- Callouts (wiki 11) ---- */
+.callout {
+  margin-right: 6px;
+  color: var(--muted);
+}
+
+.callout-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pl-store {
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.pl-store:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* ---- Region card (pinned on the map by the 3D scene) ---- */
+.region-card {
+  width: 150px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.region-card[data-dimmed] {
+  opacity: 0.35;
+}
+
+.region-card-total {
+  margin: 2px 0 8px;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion: show the end state at once. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

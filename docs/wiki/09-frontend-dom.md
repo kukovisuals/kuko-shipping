@@ -1,6 +1,6 @@
 # Frontend DOM
 
-> **Owner:** Frontend · **Status:** Built (M6, partly) · **Last updated:** 2026-10-07
+> **Owner:** Frontend · **Status:** Built (M6, M9 DOM half) · **Last updated:** 2026-10-07
 
 ## Purpose
 The React (non-3D) parts of the page.
@@ -25,7 +25,14 @@ The React (non-3D) parts of the page.
 
 `PipelineLabels.tsx` holds the small text pieces beside the stacks (`StackCount`, `RegionName`, `StageTitle`, `FlowNote`, `CircleLabel`); the 3D scene places them with drei `<Html>`.
 
-**Not built yet** (it sits on 3D positions): `RegionCard` comes with M9. Escape-to-close and the ① ② callouts are M9.
+## Built in M9 (DOM half)
+- `RegionCard` (`name, count, onTime, late, dimmed?`): plain props; 3D pins it over each region and passes `dimmed` for every region except the selected one (opacity .35, 300 ms).
+- `StoreButton` (in `PipelineLabels.tsx`): the Store circle as a real button, wired to `pipelineCollapsed` (callout ①). 3D must pin it with pointer events on.
+- Numbered hints: `①` on the Store button, `②` above the sidebar rows.
+- `useCloseOnEscape()` (in `LateList`): Escape clears `selectedRegion`. Tab and Enter work because sidebar rows are buttons.
+- `usePrefersReducedMotion()` for 3D animation; CSS drops all transitions under `prefers-reduced-motion`.
+
+**Waiting on 3D:** mounting `RegionCard` and `StoreButton`, the collapse animation, and the map fade (see `docs/handoffs.md`).
 
 ## Shared state (zustand)
 ```ts

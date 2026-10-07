@@ -1,3 +1,4 @@
+import { useStore } from '@/lib/store'
 import { fmt } from './format'
 
 // Text beside the 3D stacks (wiki 09). Plain presentational pieces: they take a value and
@@ -16,3 +17,22 @@ export const FlowNote = ({ text }: { text: string }) => <span className="pl-note
 
 // Text inside the Store and In transit circles.
 export const CircleLabel = ({ text }: { text: string }) => <span className="pl-circle">{text}</span>
+
+// Callout ① (wiki 11): clicking Store collapses Ordered and Packed into one count each.
+// A real button, so it works from the keyboard. The 3D scene pins it and must let it take clicks.
+export function StoreButton() {
+  const collapsed = useStore((s) => s.pipelineCollapsed)
+  const toggle = useStore((s) => s.togglePipelineCollapsed)
+  return (
+    <button
+      type="button"
+      className="pl-store"
+      aria-pressed={collapsed}
+      aria-label="Store: combine the stacks into one count each"
+      onClick={toggle}
+    >
+      <span className="callout" aria-hidden="true">①</span>
+      Store
+    </button>
+  )
+}
