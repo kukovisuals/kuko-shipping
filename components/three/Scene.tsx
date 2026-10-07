@@ -1,16 +1,21 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import UsMap from "./UsMap";
 
-// M1 test cube: proves the Canvas renders behind the DOM.
-// Kuko replaces this with the map in M7 (3D_MODE: PAIR).
+// Flat, top-down view (wiki 10): orthographic camera, transparent background
+// (the page color comes from CSS), no tone mapping (so token colors show as written),
+// and draw only when something changes.
 export default function Scene() {
   return (
-    <Canvas camera={{ position: [0, 0, 5] }}>
-      <mesh rotation={[0.5, 0.6, 0]}>
-        <boxGeometry args={[1.5, 1.5, 1.5]} />
-        <meshBasicMaterial color="#c0392b" />
-      </mesh>
+    <Canvas
+      orthographic
+      flat
+      frameloop="demand"
+      camera={{ position: [0, 0, 100], zoom: 1 }}
+      gl={{ alpha: true }}
+    >
+      <UsMap />
     </Canvas>
   );
 }

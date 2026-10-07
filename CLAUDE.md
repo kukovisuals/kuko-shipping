@@ -115,7 +115,6 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 
 | ID | Question | Default for now |
 |----|----------|-----------------|
-| OPEN-02 | At-risk in v1? | Not built. Enum value exists, unused. |
 | OPEN-03 | What is a lane? | One straight line from warehouse to each destination city. |
 | OPEN-04 | Late rule | Implement both; `LATE_RULE` env, default `B`. |
 | OPEN-05 | State → region | US Census regions (Northeast, Midwest, South, West). |
@@ -134,7 +133,7 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 - Adding a dependency not listed in the stack.
 - Deleting data or files outside your role's folders.
 - Overriding a decision in `docs/wiki/14-decisions-log.md`.
-- Writing 3D scene code while `3D_MODE: PAIR`.
+- Writing 3D scene code while `3D_MODE: BUILD`.
 
 ## Never
 

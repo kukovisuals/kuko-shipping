@@ -1,6 +1,6 @@
 # 3D Scene (React Three Fiber)
 
-> **Owner:** 3D · **Status:** Draft · **Last updated:** 2026-10-07
+> **Owner:** 3D · **Status:** Built (M7: map only) · **Last updated:** 2026-10-07
 
 ## Purpose
 Everything drawn in the R3F Canvas.
@@ -20,6 +20,14 @@ Everything drawn in the R3F Canvas.
 
 ![Map geometry pipeline in six steps from TopoJSON to region meshes and borders](img/fig-map-geometry.svg)
 
+
+## Built in M7
+The map: 4 region meshes + 2 line sets (state borders, region borders) = **6 draw calls**.
+- `lib/project.ts`: `project(lat, lng) → [x, y] | null` (null off the map), plus `albers` and `toScene` for geometry code. Scene units: map centered on the origin, y up, 1 unit = 1 projected pixel (975 × 610).
+- `components/three/usMapGeometry.ts`: builds the geometry once. States are streamed through the projection (so the AK/HI insets clip correctly), merged per region with `regionForFips`. Territories are skipped.
+- `UsMap.tsx` fits the map into the DOM's `.map` column (`useMapZone`), and `useThemeColors` reads `lib/tokens.ts` so the Canvas follows the Light/Dark toggle.
+- `Scene.tsx`: orthographic camera, `frameloop="demand"`, transparent, `flat` (no tone mapping, so token colors show as written).
+- Not yet: hatch patterns on regions, hover, fade for the selected region (M9).
 
 ## Objects
 
