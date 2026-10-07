@@ -38,14 +38,23 @@ export function useZone(selector: string): Zone | null {
   )
 }
 
-// Where a group of `w` x `h` scene units goes so it sits centered in the zone, as large
-// as fits. Orthographic camera at zoom 1: one world unit is one canvas pixel, origin at the center.
+// Where a group of `w` x `h` scene units goes so it sits centered in the zone, as large as fits.
+// Pure, so DOM pieces outside the Canvas (the region cards) can use the same numbers as the scene.
+// cx, cy: the zone's center in canvas pixels, top-left origin.
+export function fitToZone(zone: Zone, w: number, h: number, fill = 0.95) {
+  return {
+    scale: Math.min((zone.w * fill) / w, (zone.h * fill) / h),
+    cx: zone.x + zone.w / 2,
+    cy: zone.y + zone.h / 2,
+  }
+}
+
+// In the Canvas, as a group position: orthographic camera at zoom 1, one world unit is one canvas pixel,
+// origin at the center.
 export function useZoneFit(selector: string, w: number, h: number, fill = 0.95) {
   const zone = useZone(selector)
   const { width, height } = useThree((s) => s.size)
   if (!zone) return null
-  return {
-    scale: Math.min((zone.w * fill) / w, (zone.h * fill) / h),
-    position: [zone.x + zone.w / 2 - width / 2, height / 2 - (zone.y + zone.h / 2), 0] as [number, number, number],
-  }
+  const { scale, cx, cy } = fitToZone(zone, w, h, fill)
+  return { scale, position: [cx - width / 2, height / 2 - cy, 0] as [number, number, number] }
 }

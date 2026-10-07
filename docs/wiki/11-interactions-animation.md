@@ -1,6 +1,6 @@
 # Interactions & Animation
 
-> **Owner:** 3D + Frontend · **Status:** Draft · **Last updated:** 2026-10-07
+> **Owner:** 3D + Frontend · **Status:** Built (M9) · **Last updated:** 2026-10-07
 
 ## Purpose
 What happens when the user clicks, hovers, or waits.
@@ -11,7 +11,8 @@ What happens when the user clicks, hovers, or waits.
 ## Callout ① — Click Store
 - **Result:** Ordered and Packed stacks collapse into one count each.
 - **State:** toggles `pipelineCollapsed`.
-- **Motion:** stacks shrink vertically into a single bar over ~300 ms. Click again to expand.
+- **Motion:** stacks slide together and stretch into one box over ~300 ms, then a total fades in. Click again to expand.
+- **Built:** the Store circle is a button (keyboard works); it fills in while collapsed.
 
 ![Before and after clicking Store: four stacks per stage become one count](img/story-callout-1.png)
 *Captured from the real design.*
@@ -20,7 +21,7 @@ What happens when the user clicks, hovers, or waits.
 ## Callout ② — Click a region in the sidebar
 - **Result:** That region's late-orders list opens.
 - **State:** sets `selectedRegion`.
-- **Map response:** the selected region stays at full strength; the others fade.
+- **Map response:** the selected region stays at full strength; the others fade (map, lanes, beads, cards). Built.
 - **Data:** fetch `/api/regions/[region]/late`.
 
 ![Before and after clicking West: the late-orders list opens](img/story-callout-2.png)

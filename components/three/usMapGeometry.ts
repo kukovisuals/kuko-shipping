@@ -6,7 +6,7 @@ import type { GeometryCollection, GeometryObject, Topology } from 'topojson-spec
 import { BufferGeometry, Float32BufferAttribute, Path, Shape, ShapeGeometry, Vector2 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import atlas from 'us-atlas/states-10m.json'
-import { albers, toScene } from '../../lib/project'
+import { MAP_H, MAP_W, albers, toScene } from '../../lib/project'
 import { REGIONS, regionForFips, type Region } from '../../lib/regions'
 
 export type Pt = [number, number]
@@ -85,6 +85,9 @@ const REGION_OFFSET: Record<Region, Pt> = {
   NE: [GAP, GAP * 0.5],
   SOUTH: [0, -GAP],
 }
+// What the map needs in scene units: the map itself, the gaps between regions, and room for lanes past the east coast.
+// The map group and the region cards both fit this box into the DOM's `.map` zone.
+export const MAP_BOX = { w: MAP_W + 2 * GAP + 34, h: MAP_H + 2.5 * GAP }
 export const regionOffset = (region: Region): Pt => REGION_OFFSET[region]
 
 function regionPolygons(region: Region): Pt[][][] {
@@ -148,6 +151,8 @@ export type UsMap = {
   eastEdge: Record<Region, number>
   // Each region's state rings in scene units (after the gap offset).
   rings: Record<Region, Pt[][]>
+  // Each region's bounding box in scene units (after the gap offset, y up).
+  bounds: Record<Region, { minX: number; maxX: number; minY: number; maxY: number }>
 }
 
 let cached: UsMap | null = null
@@ -161,10 +166,17 @@ export function usMap(): UsMap {
         return [id, geometry.boundingBox!.max.x]
       }),
     ) as Record<Region, number>
+    const bounds = Object.fromEntries(
+      regions.map(({ id, geometry }) => {
+        const { min, max } = geometry.boundingBox!
+        return [id, { minX: min.x, maxX: max.x, minY: min.y, maxY: max.y }]
+      }),
+    ) as UsMap['bounds']
     const inRegion = (r: Region, o: GeometryObject) => regionOf(o.id) === r
     cached = {
       regions,
       eastEdge,
+      bounds,
       rings: Object.fromEntries(REGIONS.map(({ id }) => [id, regionRings(id)])) as Record<Region, Pt[][]>,
       stateBorders: lineGeometry(
         REGIONS.map(({ id }) => ({

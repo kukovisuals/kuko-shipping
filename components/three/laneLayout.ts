@@ -36,10 +36,11 @@ export type PlacedLane = {
 
 export type LaneLayout = {
   lanes: PlacedLane[]
-  solid: [Pt, Pt][]
-  dashed: [Pt, Pt][]
-  beads: { x: number; y: number; r: number; late: boolean }[]
-  warehouses: Pt[]
+  // Segments carry their region, so the map can fade a region's lanes (callout 2).
+  solid: [Pt, Pt, Region][]
+  dashed: [Pt, Pt, Region][]
+  beads: { x: number; y: number; r: number; late: boolean; region: Region }[]
+  warehouses: { p: Pt; region: Region }[]
 }
 
 // Where a point sits once its region is drawn apart from the others.
@@ -114,7 +115,7 @@ export function laneLayout(data: Lanes, map: Pick<UsMap, 'eastEdge' | 'rings'>):
   const radius = (n: number) => Math.max(BEAD_MIN, BEAD_MAX * Math.sqrt(Math.min(n, busy) / busy))
 
   const out: LaneLayout = { lanes: [], solid: [], dashed: [], beads: [], warehouses: [] }
-  for (const [, w] of warehouses) if (w.p) out.warehouses.push(w.p)
+  for (const [, w] of warehouses) if (w.p) out.warehouses.push({ p: w.p, region: w.region })
 
   for (const { stop, warehouse, to } of placed) {
     const spoke = stop.region === warehouse.region
@@ -134,17 +135,17 @@ export function laneLayout(data: Lanes, map: Pick<UsMap, 'eastEdge' | 'rings'>):
 
     // Solid from the start through the on-time days, dashed accent from there through the late days.
     const late = stop.days.filter((d) => d.late)
-    if (late.length === 0) out.solid.push([from, to])
-    else if (stop.onTime === 0) out.dashed.push([from, to])
+    if (late.length === 0) out.solid.push([from, to, stop.region])
+    else if (stop.onTime === 0) out.dashed.push([from, to, stop.region])
     else {
       const split = at(Math.min(...late.map((d) => d.ageDays)) - 0.5)
-      out.solid.push([from, split])
-      out.dashed.push([split, to])
+      out.solid.push([from, split, stop.region])
+      out.dashed.push([split, to, stop.region])
     }
 
     for (const d of stop.days) {
       const [x, y] = at(d.ageDays)
-      out.beads.push({ x, y, r: Math.min(radius(d.shipments), Math.max(room, BEAD_MIN)), late: d.late })
+      out.beads.push({ x, y, r: Math.min(radius(d.shipments), Math.max(room, BEAD_MIN)), late: d.late, region: stop.region })
     }
   }
   return out

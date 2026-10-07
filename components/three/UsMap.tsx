@@ -1,17 +1,18 @@
 'use client'
 
 import { DoubleSide } from 'three'
-import { MAP_H, MAP_W } from '@/lib/project'
-import { GAP, usMap } from './usMapGeometry'
+import { MAP_BOX, usMap } from './usMapGeometry'
 import MapObjects from './MapObjects'
+import { dimColor, useRegionDims } from './useRegionDims'
 import { useZoneFit } from './useZone'
 import { useThemeColors } from './useThemeColors'
 
 // 4 region meshes + 2 line sets (state borders, region outlines) = 6 draw calls, plus MapObjects.
+// The other regions fade when one is selected (callout 2).
 export default function UsMap() {
   const colors = useThemeColors()
-  // Extra room: the regions are drawn apart by GAP and lanes run past the east coast.
-  const fit = useZoneFit('.map', MAP_W + 2 * GAP + 34, MAP_H + 2.5 * GAP)
+  const dims = useRegionDims()
+  const fit = useZoneFit('.map', MAP_BOX.w, MAP_BOX.h)
   if (!fit) return null
 
   const { regions, stateBorders, regionOutlines } = usMap()
@@ -20,7 +21,7 @@ export default function UsMap() {
     <group position={fit.position} scale={fit.scale}>
       {regions.map(({ id, geometry }) => (
         <mesh key={id} geometry={geometry} name={id}>
-          <meshBasicMaterial color={colors.land} side={DoubleSide} />
+          <meshBasicMaterial color={dimColor(colors.land, colors.bg, dims[id])} side={DoubleSide} />
         </mesh>
       ))}
       <lineSegments geometry={stateBorders} position-z={0.1}>

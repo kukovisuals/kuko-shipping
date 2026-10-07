@@ -1,6 +1,6 @@
 # 3D Scene (React Three Fiber)
 
-> **Owner:** 3D · **Status:** Built (M7 map, M8 objects) · **Last updated:** 2026-10-07
+> **Owner:** 3D · **Status:** Built (M7 map, M8 objects, M9 callouts) · **Last updated:** 2026-10-07
 
 ## Purpose
 Everything drawn in the R3F Canvas.
@@ -29,7 +29,7 @@ The map: 4 region meshes + 2 line sets (state borders, region borders) = **6 dra
 - `Scene.tsx`: orthographic camera, `frameloop="demand"`, transparent, `flat` (no tone mapping, so token colors show as written).
 
 ## Built in M8 (lanes redone to D-009)
-All from the API, all instanced or batched: **16 draw calls** (counted from the code: 4 regions, state borders, region outlines, 2 lane sets, 2 bead sets (on time, late), arrowheads, destinations, warehouses, slabs, circles + arrows, dotted circle).
+All from the API, all instanced or batched: **18 draw calls** (counted from the code: 4 regions, state borders, region outlines, 2 lane sets, 2 bead sets (on time, late), arrowheads, destinations, warehouses; pipeline: slabs, backorder slabs, collapsed boxes, circles + arrows, dotted circle). The region cards and all labels are DOM.
 - **Regions are drawn apart** with a gap (`GAP` = 48 map units, `REGION_OFFSET` in `usMapGeometry.ts`). Each region has its own outline, so both sides of a shared edge are drawn.
 - `laneLayout.ts` decides where everything goes (pure, tested in `laneLayout.test.ts` with all 51 capitals); `MapObjects.tsx` (from `/api/lanes`) turns it into geometry. Per D-009:
   - **Warehouse's region (NE):** a lane is a straight spoke, warehouse → city.
@@ -44,6 +44,12 @@ All from the API, all instanced or batched: **16 draw calls** (counted from the 
 - `Instanced.tsx`: many copies of one shape in one draw call, each with its own color.
 
 - Not yet: hatch patterns on regions, hover, fade for the selected region (M9).
+
+## Built in M9 (callouts)
+- **Callout ① (Store):** `Pipeline.tsx` mounts `StoreButton` (DOM, from `PipelineLabels`) over the Store circle. With `pipelineCollapsed`, the Ordered and Packed stacks of each stage close up into one box (`collapsedBox`, `slabPose` in `pipelineLayout.ts`, both pure and tested) while the per-stack labels fade and one `StageTotal` count fades in. Backorder never collapses. Slabs fade out as the box outline fades in, over ~300 ms.
+- **Callout ② (map fade):** with `selectedRegion` set, every other region fades (land fill, its lanes, beads, arrowheads, destinations; its card via CSS). It is a colour move toward the page colour (`dimColor`, 70% at most), so shape and pattern stay (rule 8). Lane lines use vertex colours, so the fade costs no extra draw call. `laneLayout` now tags beads, segments and warehouses with their region.
+- **Motion:** `useTween` (~300 ms, asks for a frame at every step because the Canvas draws on demand). With reduced motion on it jumps to the end state. `useRegionDims` turns the store into a 0..1 fade per region.
+- **Region cards:** `MapCards.tsx` places one `RegionCard` per region from `/api/summary`. They are plain DOM beside the Canvas (in `CanvasLayer`), placed with the same `fitToZone` and `MAP_BOX` as the map group. `regionCards.ts` picks the anchors (above West, Midwest and NE; South's to the east of its lanes). drei `<Html>` was tried first: each one runs its own React root, and in dev the first card of a group went missing.
 
 ## Objects
 
