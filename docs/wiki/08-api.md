@@ -54,7 +54,7 @@ Feeds: map lanes, order dots, destinations, warehouses.
 {
   "computedAt": "2026-10-07T14:00:00Z",
   "warehouses": [
-    { "id": "loc-1", "name": "NE Warehouse", "city": "", "lat": 0, "lng": 0 }
+    { "id": "loc-1", "name": "NE Warehouse", "city": "", "region": "NE", "lat": 0, "lng": 0 }
   ],
   "lanes": [
     {
@@ -69,7 +69,7 @@ Feeds: map lanes, order dots, destinations, warehouses.
   ]
 }
 ```
-Lane shape follows OPEN-03 (default): **one straight line from a warehouse to a destination city**, so `points` is `[warehouse, city]`.
+A lane is data about one warehouse → city route, so `points` is `[warehouse, city]`. How it is *drawn* is the map's job (D-009): a spoke when `lane.region` equals the warehouse's `region`, a horizontal line flowing west everywhere else. That is why each warehouse carries its own `region`.
 - A lane is one `(warehouse, city, timing)`. A city with both late and on-time shipments has two lanes on the same line, so a lane has one colour. Ids are readable: `lane-loc-1-or-portland-late`.
 - `shipments` is how many shipments ride the lane. One dot per shipment (OPEN-06), so the map draws that many dots.
 - Delivered orders are left out: lanes show what is still on its way.

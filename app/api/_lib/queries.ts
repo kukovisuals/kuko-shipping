@@ -2,7 +2,7 @@
 // engine wrote; none of them decides a stage, timing, or region (architecture rule 1).
 
 import { db } from '../../../lib/db'
-import { REGIONS, type Region } from '../../../lib/regions'
+import { REGIONS, regionForState, type Region } from '../../../lib/regions'
 
 // Orders the engine has not processed yet have no region, and are left out of every endpoint.
 const PROCESSED = { region: { not: null } } as const
@@ -125,7 +125,8 @@ export async function getLanes() {
 
   return {
     computedAt,
-    warehouses: warehouses.map(({ id, name, city, lat, lng }) => ({ id, name, city, lat, lng })),
+    // `region` is the warehouse's own region: the map draws spokes there and horizontal lanes elsewhere (D-009).
+    warehouses: warehouses.map(({ id, name, city, state, lat, lng }) => ({ id, name, city, region: regionForState(state), lat, lng })),
     lanes: [...lanes.values()].sort((a, b) => a.id.localeCompare(b.id)),
   }
 }

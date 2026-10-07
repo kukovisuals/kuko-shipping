@@ -26,7 +26,7 @@ export type Pipeline = {
 
 export type Lanes = {
   computedAt: string | null
-  warehouses: { id: string; name: string; city: string; lat: number; lng: number }[]
+  warehouses: { id: string; name: string; city: string; region: Region; lat: number; lng: number }[]
   lanes: {
     id: string
     warehouseId: string

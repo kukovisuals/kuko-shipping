@@ -79,7 +79,8 @@ describe('GET /api/lanes', () => {
   it('lists warehouses and straight lanes from a known warehouse', async () => {
     const body = await (await getLanes()).json()
     expect(body.warehouses.length).toBeGreaterThan(0)
-    expect(body.warehouses[0]).toEqual({ id: expect.any(String), name: expect.any(String), city: expect.any(String), lat: expect.any(Number), lng: expect.any(Number) })
+    expect(body.warehouses[0]).toEqual({ id: expect.any(String), name: expect.any(String), city: expect.any(String), region: expect.any(String), lat: expect.any(Number), lng: expect.any(Number) })
+    for (const w of body.warehouses) expect(regionIds).toContain(w.region)
     expect(body.lanes.length).toBeGreaterThan(0)
 
     const ids = new Set(body.warehouses.map((w: { id: string }) => w.id))
