@@ -305,6 +305,11 @@ button {
   gap: 8px;
 }
 
+.legend-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .theme-toggle {
   display: flex;
   flex: none;

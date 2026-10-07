@@ -67,7 +67,7 @@ What every zone of the one-page design shows, and the visual rules.
 - List shows 6 rows, then "+ N more."
 
 **Legend (footer)**
-- On time, Late, In transit, Stack, Backorder, Store, Order, Destination, Warehouse.
+- On time, Late, In transit, Stack, Backorder, Store, Order day (solid disc = on time, ring = late, with a note that size = orders that day), Destination, Warehouse.
 
 ## Visual rules
 
