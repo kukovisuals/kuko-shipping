@@ -77,6 +77,16 @@ function polygonShapes(rings: Pt[][]): Shape[] {
   return shapes.map(({ shape }) => shape)
 }
 
+// Regions are drawn apart (D-009): each is nudged away from the others, in map units.
+const GAP = 28
+const REGION_OFFSET: Record<Region, Pt> = {
+  WEST: [-GAP, 0],
+  MIDWEST: [0, GAP * 0.7],
+  NE: [GAP, GAP * 0.5],
+  SOUTH: [0, -GAP],
+}
+export const regionOffset = (region: Region): Pt => REGION_OFFSET[region]
+
 function regionGeometry(region: Region): BufferGeometry {
   const parts = feature(topology, states)
     .features.filter((f) => regionOf(f.id) === region)
@@ -84,27 +94,35 @@ function regionGeometry(region: Region): BufferGeometry {
     .flatMap(polygonShapes)
     .map((shape) => new ShapeGeometry(shape))
   // Merging is what keeps this at 4 draw calls instead of ~50.
-  return mergeGeometries(parts)!
+  const merged = mergeGeometries(parts)!
+  merged.translate(...REGION_OFFSET[region], 0)
+  return merged
 }
 
-function lineGeometry(filter: (a: GeometryObject, b: GeometryObject) => boolean): BufferGeometry {
+type LinePart = { filter: (a: GeometryObject, b: GeometryObject) => boolean; offset: Pt }
+
+// Border lines for several regions in one geometry (one draw call), each nudged by its region's offset.
+function lineGeometry(parts: LinePart[]): BufferGeometry {
   const positions: number[] = []
-  let prev: Pt | null = null
-  geoStream(
-    mesh(topology, states, filter),
-    albers.stream({
-      point: (x, y) => {
-        const p = toScene(x, y)
-        if (prev) positions.push(prev[0], prev[1], 0, p[0], p[1], 0)
-        prev = p
-      },
-      lineStart: () => (prev = null),
-      lineEnd: () => (prev = null),
-      polygonStart: () => {},
-      polygonEnd: () => {},
-      sphere: () => {},
-    }),
-  )
+  for (const { filter, offset } of parts) {
+    let prev: Pt | null = null
+    geoStream(
+      mesh(topology, states, filter),
+      albers.stream({
+        point: (x, y) => {
+          const [px, py] = toScene(x, y)
+          const p: Pt = [px + offset[0], py + offset[1]]
+          if (prev) positions.push(prev[0], prev[1], 0, p[0], p[1], 0)
+          prev = p
+        },
+        lineStart: () => (prev = null),
+        lineEnd: () => (prev = null),
+        polygonStart: () => {},
+        polygonEnd: () => {},
+        sphere: () => {},
+      }),
+    )
+  }
   const g = new BufferGeometry()
   g.setAttribute('position', new Float32BufferAttribute(positions, 3))
   return g
@@ -112,20 +130,42 @@ function lineGeometry(filter: (a: GeometryObject, b: GeometryObject) => boolean)
 
 export type UsMap = {
   regions: { id: Region; geometry: BufferGeometry }[]
+  // Borders between states of the same region.
   stateBorders: BufferGeometry
-  regionBorders: BufferGeometry
+  // Each region's whole outline: its coast plus the edges it shares with other regions.
+  regionOutlines: BufferGeometry
+  // Easternmost point of each region (after the gap offset), where its horizontal lanes end.
+  eastEdge: Record<Region, number>
 }
 
 let cached: UsMap | null = null
 
 export function usMap(): UsMap {
-  cached ??= {
-    regions: REGIONS.map(({ id }) => ({ id, geometry: regionGeometry(id) })),
-    stateBorders: lineGeometry((a, b) => a !== b && !!regionOf(a.id) && !!regionOf(b.id)),
-    regionBorders: lineGeometry((a, b) => {
-      const [ra, rb] = [regionOf(a.id), regionOf(b.id)]
-      return a !== b && !!ra && !!rb && ra !== rb
-    }),
+  if (!cached) {
+    const regions = REGIONS.map(({ id }) => ({ id, geometry: regionGeometry(id) }))
+    const eastEdge = Object.fromEntries(
+      regions.map(({ id, geometry }) => {
+        geometry.computeBoundingBox()
+        return [id, geometry.boundingBox!.max.x]
+      }),
+    ) as Record<Region, number>
+    const inRegion = (r: Region, o: GeometryObject) => regionOf(o.id) === r
+    cached = {
+      regions,
+      eastEdge,
+      stateBorders: lineGeometry(
+        REGIONS.map(({ id }) => ({
+          filter: (a, b) => a !== b && inRegion(id, a) && inRegion(id, b),
+          offset: REGION_OFFSET[id],
+        })),
+      ),
+      regionOutlines: lineGeometry(
+        REGIONS.map(({ id }) => ({
+          filter: (a, b) => inRegion(id, a) !== inRegion(id, b) || (a === b && inRegion(id, a)),
+          offset: REGION_OFFSET[id],
+        })),
+      ),
+    }
   }
   return cached
 }

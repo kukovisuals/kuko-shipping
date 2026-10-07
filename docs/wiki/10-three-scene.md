@@ -15,8 +15,8 @@ Everything drawn in the R3F Canvas.
 2. Convert to GeoJSON with `topojson-client`.
 3. Project with `d3-geo`'s `geoAlbersUsa`. It handles Alaska and Hawaii insets, which the design shows.
 4. Turn each state outline into a `THREE.Shape`, then a `ShapeGeometry`.
-5. Merge states into four region meshes using the region table (OPEN-05).
-6. Region borders: thin lines from the same outlines.
+5. Merge states into four region meshes using the region table (OPEN-05), each nudged apart (D-009).
+6. Region outlines: thin lines from the same outlines.
 
 ![Map geometry pipeline in six steps from TopoJSON to region meshes and borders](img/fig-map-geometry.svg)
 
@@ -28,12 +28,16 @@ The map: 4 region meshes + 2 line sets (state borders, region borders) = **6 dra
 - `UsMap.tsx` fits the map into the DOM's `.map` column (`useMapZone`), and `useThemeColors` reads `lib/tokens.ts` so the Canvas follows the Light/Dark toggle.
 - `Scene.tsx`: orthographic camera, `frameloop="demand"`, transparent, `flat` (no tone mapping, so token colors show as written).
 
-## Built in M8
-All from the API, all instanced or batched: **14 draw calls** (counted from the code: 4 regions, 2 border sets, 2 lane sets, dots, destinations, warehouses, slabs, circles + arrows, dotted circle).
-- `MapObjects.tsx` (from `/api/lanes`): lanes as two `LineSegments` (on time: faint solid; late: dashed, accent), one dot per shipment spread along its lane, one marker per destination city (accent if any lane to it is late), warehouses. This resolves OPEN-11: lanes are batched, not one drei `<Line>` each.
+## Built in M8 (lanes redone to D-009)
+All from the API, all instanced or batched: **15 draw calls** (counted from the code: 4 regions, state borders, region outlines, 2 lane sets, dots, arrowheads, destinations, warehouses, slabs, circles + arrows, dotted circle).
+- **Regions are drawn apart** with a gap (`REGION_OFFSET` in `usMapGeometry.ts`). Each region has its own outline, so both sides of a shared edge are drawn.
+- `MapObjects.tsx` (from `/api/lanes`), per D-009:
+  - **Warehouse's region (NE):** a lane is a straight spoke, warehouse → city.
+  - **Every other region:** a horizontal line at the city's latitude, from a shared end `END_MARGIN` past the region's east edge, flowing west to the city. An arrowhead at the east end points west.
+  - On time is solid; late is dashed and accent-colored. One dot per shipment (OPEN-06): spaced `DOT_SPACING` apart, closer on a busy lane so every shipment gets a dot. One marker per destination city (accent if any lane to it is late). Warehouses come with their own `region` from the API.
+  - Lanes are batched, not one drei `<Line>` each, which resolves OPEN-11.
 - `Pipeline.tsx` + `pipelineLayout.ts` (from `/api/pipeline`): stacks of thin slabs, one per region per stage. Every stack shares one scale, so height is proportional to count. Store circle, In transit dotted circle, and the "no stock" / "restocked" arrows. It fits into the `.pipeline` column, as the map fits into `.map`.
 - `Instanced.tsx`: many copies of one shape in one draw call, each with its own color.
-- With OPEN-03's default (a lane is a straight line warehouse → city), the lanes fan out from Newark like a starburst.
 
 - Not yet: hatch patterns on regions, hover, fade for the selected region (M9).
 
@@ -65,7 +69,7 @@ One function, `project(lat, lng) → [x, y]`, used by every object. If it's defi
 
 
 ## Open items
-- OPEN-03: What a lane represents.
+- OPEN-03: Closed by D-009 (see above).
 - OPEN-06: Dot = order or shipment.
 - OPEN-08: Warehouse coordinates.
 
