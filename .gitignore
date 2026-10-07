@@ -55,3 +55,5 @@ npm-debug.log*
 
 # land-map source the owner drops in (spec §12.3)
 scripts/data/
+
+/app/generated/prisma

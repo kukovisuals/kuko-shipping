@@ -1,0 +1,64 @@
+/* M1 skeleton. Colors move to lib/tokens.ts in M6 (Frontend). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background: #f6f5f2;
+  color: #1a1a1a;
+}
+
+/* Wiki 04 step 7: one canvas behind, one grid on top. */
+.page {
+  position: relative;
+  min-height: 100vh;
+}
+
+.canvas-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.grid {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "header header header"
+    "pipeline map summary"
+    "legend legend legend";
+  pointer-events: none;
+}
+
+.grid > * {
+  pointer-events: auto;
+}
+
+.header {
+  grid-area: header;
+  padding: 24px 32px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.pipeline { grid-area: pipeline; }
+.map { grid-area: map; pointer-events: none; }
+.summary { grid-area: summary; }
+.legend { grid-area: legend; }
