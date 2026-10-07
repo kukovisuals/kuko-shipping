@@ -323,3 +323,28 @@ button {
   background: var(--ink);
   color: var(--bg);
 }
+
+/* ---- Pipeline labels (placed by the 3D scene) ---- */
+.pl-count,
+.pl-name,
+.pl-stage,
+.pl-note,
+.pl-circle {
+  display: block;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.pl-count,
+.pl-note,
+.pl-stage {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.pl-count { font-size: 11px; color: var(--muted); }
+.pl-name { font-size: 11px; color: var(--ink); }
+.pl-note { font-size: 10px; color: var(--muted); }
+.pl-stage { font-size: 10px; letter-spacing: 0.14em; color: var(--muted); }
+.pl-circle { font-size: 15px; font-weight: 600; color: var(--ink); }

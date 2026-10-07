@@ -23,7 +23,9 @@ The React (non-3D) parts of the page.
 ## Built in M6
 `Header`, `Total`, `Sidebar`, `LateList`, `Legend` render real API data (code in `components/dom/`). `Bar` is the shared proportional bar; `ThemeToggle` (in the Legend row) switches Light/Dark, which only recolours the one design.
 
-**Not built yet** (they sit on 3D positions): `RegionCard` and `PipelineLabels` come with M8/M9. Escape-to-close and the ① ② callouts are M9.
+`PipelineLabels.tsx` holds the small text pieces beside the stacks (`StackCount`, `RegionName`, `StageTitle`, `FlowNote`, `CircleLabel`); the 3D scene places them with drei `<Html>`.
+
+**Not built yet** (it sits on 3D positions): `RegionCard` comes with M9. Escape-to-close and the ① ② callouts are M9.
 
 ## Shared state (zustand)
 ```ts
