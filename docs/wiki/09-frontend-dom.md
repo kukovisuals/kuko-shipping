@@ -1,6 +1,6 @@
 # Frontend DOM
 
-> **Owner:** Frontend · **Status:** Proposed · **Last updated:** 2026-10-07
+> **Owner:** Frontend · **Status:** Built (M6, partly) · **Last updated:** 2026-10-07
 
 ## Purpose
 The React (non-3D) parts of the page.
@@ -20,6 +20,11 @@ The React (non-3D) parts of the page.
 ![React components placed on the page](img/fig-components.svg)
 
 
+## Built in M6
+`Header`, `Total`, `Sidebar`, `LateList`, `Legend` render real API data (code in `components/dom/`). `Bar` is the shared proportional bar; `ThemeToggle` (in the Legend row) switches Light/Dark, which only recolours the one design.
+
+**Not built yet** (they sit on 3D positions): `RegionCard` and `PipelineLabels` come with M8/M9. Escape-to-close and the ① ② callouts are M9.
+
 ## Shared state (zustand)
 ```ts
 {
@@ -33,6 +38,7 @@ DOM and 3D both read this store. That's how a sidebar click can highlight a regi
 
 
 ## Data fetching
+Code: `lib/hooks/useEndpoint.ts` (one fetch and one timer per URL, shared by every component; a module-level store, so the 3D Canvas can read it too), with `useSummary()` and `useLateOrders(region)` on top. Response types: `lib/hooks/types.ts`.
 - One small hook per endpoint (e.g. `useSummary()`).
 - Fetch on mount, then re-fetch on the refresh timer (OPEN-07).
 - Show the last good data during a re-fetch. Never flash empty.
@@ -44,7 +50,7 @@ DOM and 3D both read this store. That's how a sidebar click can highlight a regi
 - Numbers in a monospace font, so digits line up.
 
 ## Shared tokens
-Colors and fills live in one file (`lib/tokens.ts`). CSS and the 3D materials both import from it, so the DOM and the map always match.
+`tokensCss()` turns `lib/tokens.ts` into CSS variables, injected by `app/page.tsx`. Colors and fills live in one file (`lib/tokens.ts`). CSS and the 3D materials both import from it, so the DOM and the map always match.
 
 ## Accessibility
 - Sidebar rows are buttons, reachable by keyboard.

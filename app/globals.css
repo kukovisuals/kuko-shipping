@@ -1,4 +1,4 @@
-/* M1 skeleton. Colors move to lib/tokens.ts in M6 (Frontend). */
+/* Colors come from lib/tokens.ts as CSS variables (--bg, --ink, --late, ...). */
 *,
 *::before,
 *::after {
@@ -13,8 +13,30 @@ body {
 
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
-  background: #f6f5f2;
-  color: #1a1a1a;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+.mono,
+.eyebrow,
+.bar-counts,
+.late-count,
+.more {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.late-count {
+  color: var(--late);
 }
 
 /* Wiki 04 step 7: one canvas behind, one grid on top. */
@@ -47,18 +69,257 @@ body {
   pointer-events: auto;
 }
 
+.pipeline { grid-area: pipeline; }
+.map { grid-area: map; pointer-events: none; }
+.summary { grid-area: summary; padding: 24px 32px; }
+
+/* ---- Fills: every color has a pattern too (solid / hatched / dotted) ---- */
+.fill-on {
+  background: var(--onTime);
+}
+
+.fill-late {
+  background: repeating-linear-gradient(135deg, var(--late) 0 1.5px, transparent 1.5px 4px);
+  outline: 1px solid var(--late);
+  outline-offset: -1px;
+}
+
+.fill-transit {
+  background: radial-gradient(circle, var(--ink) 0.8px, transparent 1px) 0 0 / 3px 3px;
+  outline: 1px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 28px;
+  height: 12px;
+}
+
+/* ---- Bars ---- */
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  background: var(--line);
+}
+
+.bar > span {
+  min-width: 0;
+}
+
+.bar-counts {
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.bar-counts > span {
+  flex-basis: 0;
+  min-width: max-content;
+}
+
+/* ---- Header + Total ---- */
 .header {
   grid-area: header;
-  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  margin: 0 32px;
+  padding: 40px 0 24px;
+  border-bottom: 1px solid var(--line);
 }
 
 .header h1 {
   margin: 0;
-  font-size: 28px;
+  max-width: 14em;
+  font-size: clamp(32px, 3.4vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.total {
+  container-type: inline-size;
+  width: clamp(240px, 22vw, 380px);
+  flex: none;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.total-number {
+  font-size: 30cqw;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin: 8px 0 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.total .bar {
+  height: 12px;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.region-row {
+  display: grid;
+  grid-template-columns: 5.5em 1fr 3em;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 8px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+}
+
+.region-row:hover,
+.region-row[aria-pressed="true"] {
+  background: var(--surface);
+}
+
+.region-row[aria-pressed="true"] .region-name {
   font-weight: 600;
 }
 
-.pipeline { grid-area: pipeline; }
-.map { grid-area: map; pointer-events: none; }
-.summary { grid-area: summary; }
-.legend { grid-area: legend; }
+.region-row .late-count {
+  text-align: right;
+  font-size: 14px;
+}
+
+.region-row:focus-visible,
+.late-list .close:focus-visible,
+.theme-toggle button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---- Late list ---- */
+.late-list {
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.late-list header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+}
+
+.late-list h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.late-list header .late-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.late-list header .swatch {
+  width: 22px;
+}
+
+.late-list .close {
+  background: none;
+  border: 0;
+  padding: 0 4px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.late-list ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.late-list li {
+  display: grid;
+  grid-template-columns: 6em 1fr auto;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.late-list li .late-count {
+  font-size: 13px;
+}
+
+.late-list .more {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+/* ---- Legend ---- */
+.legend {
+  grid-area: legend;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin: 0 32px;
+  padding: 20px 0 28px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  display: flex;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.theme-toggle button {
+  padding: 5px 14px;
+  background: none;
+  border: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.theme-toggle button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
