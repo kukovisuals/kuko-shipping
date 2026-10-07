@@ -51,6 +51,31 @@ export const FLOW_NOTES: { text: string; at: Pt }[] = [
 export const countAt = (s: StackBox): Pt => [s.x + s.w / 2, s.base - s.h - 9]
 export const nameAt = (s: StackBox): Pt => [s.x + s.w / 2, s.base + 12]
 
+// Callout ① (wiki 11): Ordered and Packed collapse. The four stacks of a stage become one box as wide
+// as the stacks together and as tall as the tallest stack.
+export const COLLAPSIBLE: readonly Stage[] = ['ordered', 'packed']
+export type Box = { x: number; base: number; w: number; h: number }
+export function collapsedBox(stage: Stage): Box {
+  const { x, w, pitch, base } = ROW[stage]
+  return { x, base, w: (REGIONS.length - 1) * pitch + w, h: TALLEST }
+}
+export const boxCenter = (b: Box): Pt => [b.x + b.w / 2, b.base - b.h / 2]
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+
+// One slab (row `row` of `rows` in its stack) while the pipeline is `t` of the way collapsed (0 = stacks, 1 = box).
+// On the way, each stack slides to the middle and stretches to the box's height, so the slabs close up into the box.
+export function slabPose(s: StackBox, row: number, rows: number, t: number, pitch: number) {
+  const from = { cx: s.x + s.w / 2, y: s.base - pitch * (row + 0.5), w: s.w }
+  if (!COLLAPSIBLE.includes(s.stage)) return from
+  const box = collapsedBox(s.stage)
+  return {
+    cx: lerp(from.cx, box.x + box.w / 2, t),
+    y: lerp(from.y, box.base - (box.h * (row + 0.5)) / rows, t),
+    w: lerp(from.w, box.w, t),
+  }
+}
+
 export function pipelineLayout(p: Pipeline) {
   const tallest = Math.max(1, ...Object.values(p.ordered))
   const stacks: StackBox[] = (['ordered', 'backorder', 'packed'] as const).flatMap((stage) => {
@@ -60,5 +85,9 @@ export function pipelineLayout(p: Pipeline) {
       return { stage, region: id, count, x: x + i * pitch, base, w, h: (count / tallest) * TALLEST }
     })
   })
-  return { stacks, pitch: TALLEST / SLAB_ROWS }
+  // The one count a collapsed stage shows.
+  const totals = Object.fromEntries(
+    COLLAPSIBLE.map((stage) => [stage, REGIONS.reduce((n, { id }) => n + p[stage][id], 0)]),
+  ) as Record<'ordered' | 'packed', number>
+  return { stacks, pitch: TALLEST / SLAB_ROWS, totals }
 }

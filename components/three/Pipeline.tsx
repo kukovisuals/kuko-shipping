@@ -3,11 +3,13 @@
 import { Fragment, useMemo, type ReactNode } from 'react'
 import { Html } from '@react-three/drei'
 import { BufferGeometry, Float32BufferAttribute, PlaneGeometry } from 'three'
-import { CircleLabel, FlowNote, RegionName, StackCount, StageTitle } from '@/components/dom/PipelineLabels'
+import { CircleLabel, FlowNote, RegionName, StackCount, StageTitle, StageTotal, StoreButton } from '@/components/dom/PipelineLabels'
 import { usePipeline } from '@/lib/hooks/usePipeline'
+import { useStore } from '@/lib/store'
 import { REGIONS } from '@/lib/regions'
 import Instanced, { type Item } from './Instanced'
 import {
+  COLLAPSIBLE,
   FLOWS,
   FLOW_NOTES,
   PIPELINE_H,
@@ -15,14 +17,18 @@ import {
   STAGE_TITLES,
   STORE,
   TRANSIT,
+  boxCenter,
+  collapsedBox,
   countAt,
   nameAt,
   pipelineLayout,
+  slabPose,
   type Circle,
   type Pt,
 } from './pipelineLayout'
 import { fmt } from '@/components/dom/format'
 import { useThemeColors } from './useThemeColors'
+import { smooth, useTween } from './useTween'
 import { useZoneFit } from './useZone'
 
 // Layout units (y down) to scene units (centered, y up).
@@ -31,10 +37,34 @@ const lay = (x: number, y: number): Pt => [x - PIPELINE_W / 2, PIPELINE_H / 2 - 
 const slab = new PlaneGeometry(1, 1)
 
 // A DOM label pinned to a scene point. Centered on the point, or starting at it when `left`.
-function Label({ at, left, children }: { at: [number, number, number]; left?: boolean; children: ReactNode }) {
+// `hidden` fades it out (CSS, so reduced motion drops the fade); `interactive` lets it take clicks.
+function Label({
+  at,
+  left,
+  hidden,
+  interactive,
+  children,
+}: {
+  at: [number, number, number]
+  left?: boolean
+  hidden?: boolean
+  interactive?: boolean
+  children: ReactNode
+}) {
   return (
-    <Html position={at} center={!left} zIndexRange={[0, 0]} style={{ pointerEvents: 'none', ...(left && { marginTop: '-0.5em' }) }}>
-      {children}
+    <Html
+      position={at}
+      center={!left}
+      zIndexRange={[0, 0]}
+      style={{
+        pointerEvents: interactive && !hidden ? 'auto' : 'none',
+        opacity: hidden ? 0 : 1,
+        transition: 'opacity 300ms ease',
+        ...(left && { marginTop: '-0.5em' }),
+      }}
+    >
+      {/* aria-hidden goes here: Html hands unknown props to the three.js group, which rejects them. */}
+      <div aria-hidden={hidden || undefined}>{children}</div>
     </Html>
   )
 }
@@ -77,38 +107,77 @@ function transitDots(): BufferGeometry {
   return g
 }
 
+// The box each collapsible stage turns into (callout 1): one rectangle per stage.
+function boxGeometry(): BufferGeometry {
+  const lines = COLLAPSIBLE.flatMap((stage) => {
+    const { x, base, w, h } = collapsedBox(stage)
+    const [a, b, c, d]: Pt[] = [[x, base - h], [x + w, base - h], [x + w, base], [x, base]]
+    return [[a, b], [b, c], [c, d], [d, a]] as [Pt, Pt][]
+  })
+  const g = new BufferGeometry()
+  g.setAttribute('position', new Float32BufferAttribute(lines.flatMap(([a, b]) => [...lay(...a), 0, ...lay(...b), 0]), 3))
+  return g
+}
+
+// The slabs, and the box they close up into. Its own component, so only it re-renders during the ~300 ms tween.
+// Slabs fade out and the box fades in over the second half, so nothing pops.
+function Slabs({ layout, collapsed }: { layout: ReturnType<typeof pipelineLayout>; collapsed: boolean }) {
+  const colors = useThemeColors()
+  const [t] = useTween([collapsed ? 1 : 0])
+  const box = useMemo(() => boxGeometry(), [])
+  const move = smooth(t)
+  const fade = smooth(Math.max(0, Math.min(1, (t - 0.5) / 0.5)))
+
+  // Backorder never collapses, so it is its own set and does not fade.
+  const [slabs, backorder] = useMemo(() => {
+    const { stacks, pitch } = layout
+    const moving: Item[] = []
+    const still: Item[] = []
+    for (const st of stacks) {
+      const n = st.count > 0 ? Math.max(1, Math.round(st.h / pitch)) : 0
+      for (let row = 0; row < n; row++) {
+        const p = slabPose(st, row, n, move, pitch)
+        const isBackorder = st.stage === 'backorder'
+        ;(isBackorder ? still : moving).push({
+          x: lay(p.cx, 0)[0],
+          y: lay(0, p.y)[1],
+          sx: p.w,
+          sy: pitch * 0.55,
+          color: isBackorder ? colors.muted : colors.ink,
+        })
+      }
+    }
+    return [moving, still]
+  }, [layout, colors, move])
+
+  return (
+    <>
+      <Instanced items={slabs} geometry={slab} z={0.1} opacity={1 - fade} />
+      <Instanced items={backorder} geometry={slab} z={0.1} />
+      <lineSegments geometry={box} position-z={0.2}>
+        <lineBasicMaterial color={colors.ink} transparent opacity={fade} depthWrite={false} />
+      </lineSegments>
+    </>
+  )
+}
+
 // Stacks of thin slabs, one stack per region per stage, from /api/pipeline.
-// Draw calls: slabs + circles/arrows + dotted circle = 3 (the labels are DOM).
+// Draw calls: slabs + backorder slabs + collapsed boxes + circles/arrows + dotted circle = 5 (the labels are DOM).
 export default function Pipeline() {
   const { data } = usePipeline()
   const colors = useThemeColors()
+  const collapsed = useStore((st) => st.pipelineCollapsed)
   const fit = useZoneFit('.pipeline', PIPELINE_W, PIPELINE_H)
 
   const lines = useMemo(() => lineGeometry(), [])
   const dots = useMemo(() => transitDots(), [])
   const layout = useMemo(() => (data ? pipelineLayout(data) : null), [data])
-  const slabs = useMemo<Item[]>(() => {
-    if (!layout) return []
-    const { stacks, pitch } = layout
-    return stacks.flatMap(({ stage, x, base, w, h, count }) => {
-      const n = count > 0 ? Math.max(1, Math.round(h / pitch)) : 0
-      const [px] = lay(x + w / 2, 0)
-      return Array.from({ length: n }, (_, i) => ({
-        x: px,
-        y: lay(0, base - pitch * (i + 0.5))[1],
-        sx: w,
-        sy: pitch * 0.55,
-        color: stage === 'backorder' ? colors.muted : colors.ink,
-      }))
-    })
-  }, [layout, colors])
-
   if (!fit || !data || !layout) return null
   const at = ([x, y]: Pt) => [...lay(x, y), 0] as [number, number, number]
   const regionName = (id: string) => REGIONS.find((r) => r.id === id)?.name ?? id
   return (
     <group position={fit.position} scale={fit.scale}>
-      <Instanced items={slabs} geometry={slab} z={0.1} />
+      <Slabs layout={layout} collapsed={collapsed} />
       <lineSegments geometry={lines} position-z={0.2}>
         <lineBasicMaterial color={colors.ink} />
       </lineSegments>
@@ -118,10 +187,10 @@ export default function Pipeline() {
       {/* Text is DOM (rule 5): each label is a small DOM piece pinned to a point in the scene. */}
       {layout.stacks.map((st) => (
         <Fragment key={`${st.stage}-${st.region}`}>
-          <Label at={at(countAt(st))}>
+          <Label at={at(countAt(st))} hidden={collapsed && COLLAPSIBLE.includes(st.stage)}>
             <StackCount value={st.count} />
           </Label>
-          <Label at={at(nameAt(st))}>
+          <Label at={at(nameAt(st))} hidden={collapsed && COLLAPSIBLE.includes(st.stage)}>
             <RegionName name={regionName(st.region)} />
           </Label>
         </Fragment>
@@ -136,8 +205,16 @@ export default function Pipeline() {
           <FlowNote text={text} />
         </Label>
       ))}
-      <Label at={at([STORE.cx, STORE.cy])}>
-        <CircleLabel text="Store" />
+      {COLLAPSIBLE.map((stage) => (
+        <Label key={stage} at={at(boxCenter(collapsedBox(stage)))} hidden={!collapsed}>
+          <StageTotal value={layout.totals[stage as 'ordered' | 'packed']} />
+        </Label>
+      ))}
+      {/* Callout 1: the Store circle is the button. It fills the circle, so the click target is the circle. */}
+      <Label at={at([STORE.cx, STORE.cy])} interactive>
+        <div style={{ width: STORE.r * 2 * fit.scale, height: STORE.r * 2 * fit.scale }}>
+          <StoreButton />
+        </div>
       </Label>
       <Label at={at([TRANSIT.cx, TRANSIT.cy])}>
         <CircleLabel text={fmt(data.inTransit)} />

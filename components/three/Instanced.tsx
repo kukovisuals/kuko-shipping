@@ -8,7 +8,8 @@ export type Item = { x: number; y: number; sx?: number; sy?: number; color: stri
 
 // Many copies of one shape in ONE draw call (wiki 10). Each item has a position,
 // an optional stretch, and its own color.
-export default function Instanced({ items, geometry, z }: { items: Item[]; geometry: BufferGeometry; z: number }) {
+// `opacity` (optional) makes the whole set see-through, for fades.
+export default function Instanced({ items, geometry, z, opacity }: { items: Item[]; geometry: BufferGeometry; z: number; opacity?: number }) {
   const ref = useRef<InstancedMesh>(null)
   const invalidate = useThree((s) => s.invalidate)
 
@@ -30,7 +31,7 @@ export default function Instanced({ items, geometry, z }: { items: Item[]; geome
   return (
     // Culling uses the single base shape's bounds, which would hide the copies.
     <instancedMesh key={items.length} ref={ref} args={[geometry, undefined, items.length]} frustumCulled={false}>
-      <meshBasicMaterial />
+      <meshBasicMaterial transparent={opacity !== undefined} opacity={opacity ?? 1} depthWrite={opacity === undefined} />
     </instancedMesh>
   )
 }
