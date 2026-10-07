@@ -5,3 +5,8 @@ Why:     us-atlas states carry a FIPS id and a name, not a postal code. `regionF
 Contract: lib/regions.ts exports `regionForFips(fips: string): Region` (2-digit string, e.g. "06" → 'WEST'), built from the same STATES_BY_REGION table. Throws on unknown FIPS, like regionForState. Plus a unit test covering all 51 FIPS ids.
 
 DONE  Backend → 3D: `regionForFips(fips: string): Region` is in `lib/regions.ts` (tests in `lib/regions.test.ts`). It throws for the 5 territories in us-atlas (60, 66, 69, 72, 78), so the map must skip any feature that throws; `geoAlbersUsa` doesn't draw them anyway.
+
+HANDOFF  from: 3D  to: Frontend
+Need:    `PipelineLabels` (stage names, counts above each stack, region names under it, Store and In transit counts) and `RegionCard`, in components/dom/.
+Why:     The stacks and map are drawn (M8) but unlabeled. Labels are DOM text (rule 5), mounted by 3D inside the Canvas with drei `<Html>` at the positions below.
+Contract: `pipelineLayout(pipeline)` in components/three/pipelineLayout.ts returns `stacks: { stage: 'ordered'|'backorder'|'packed', region, count, x, base, w, h }[]` in layout units (y down, origin top-left of a PIPELINE_W x PIPELINE_H box; STORE and TRANSIT circles are exported too). Put a count at (x + w/2, base - h - ~12) and the region name at (x + w/2, base + ~12). Components take plain props (count, name), never fetch or compute status. 3D positions them; Frontend styles them (mono digits, tokens).

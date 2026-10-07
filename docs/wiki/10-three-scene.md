@@ -1,6 +1,6 @@
 # 3D Scene (React Three Fiber)
 
-> **Owner:** 3D · **Status:** Built (M7: map only) · **Last updated:** 2026-10-07
+> **Owner:** 3D · **Status:** Built (M7 map, M8 objects) · **Last updated:** 2026-10-07
 
 ## Purpose
 Everything drawn in the R3F Canvas.
@@ -27,6 +27,14 @@ The map: 4 region meshes + 2 line sets (state borders, region borders) = **6 dra
 - `components/three/usMapGeometry.ts`: builds the geometry once. States are streamed through the projection (so the AK/HI insets clip correctly), merged per region with `regionForFips`. Territories are skipped.
 - `UsMap.tsx` fits the map into the DOM's `.map` column (`useMapZone`), and `useThemeColors` reads `lib/tokens.ts` so the Canvas follows the Light/Dark toggle.
 - `Scene.tsx`: orthographic camera, `frameloop="demand"`, transparent, `flat` (no tone mapping, so token colors show as written).
+
+## Built in M8
+All from the API, all instanced or batched: **14 draw calls** (counted from the code: 4 regions, 2 border sets, 2 lane sets, dots, destinations, warehouses, slabs, circles + arrows, dotted circle).
+- `MapObjects.tsx` (from `/api/lanes`): lanes as two `LineSegments` (on time: faint solid; late: dashed, accent), one dot per shipment spread along its lane, one marker per destination city (accent if any lane to it is late), warehouses. This resolves OPEN-11: lanes are batched, not one drei `<Line>` each.
+- `Pipeline.tsx` + `pipelineLayout.ts` (from `/api/pipeline`): stacks of thin slabs, one per region per stage. Every stack shares one scale, so height is proportional to count. Store circle, In transit dotted circle, and the "no stock" / "restocked" arrows. It fits into the `.pipeline` column, as the map fits into `.map`.
+- `Instanced.tsx`: many copies of one shape in one draw call, each with its own color.
+- With OPEN-03's default (a lane is a straight line warehouse → city), the lanes fan out from Newark like a starburst.
+
 - Not yet: hatch patterns on regions, hover, fade for the selected region (M9).
 
 ## Objects
@@ -61,7 +69,7 @@ One function, `project(lat, lng) → [x, y]`, used by every object. If it's defi
 - OPEN-06: Dot = order or shipment.
 - OPEN-08: Warehouse coordinates.
 
-- OPEN-11: Lanes as separate drei `<Line>`s exceed the draw-call budget.
+- OPEN-11: Resolved in M8 by batching lanes (see above).
 
 
 ## Depends on

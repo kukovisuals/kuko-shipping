@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import Pipeline from "./Pipeline";
 import UsMap from "./UsMap";
 
 // Flat, top-down view (wiki 10): orthographic camera, transparent background
@@ -16,6 +17,7 @@ export default function Scene() {
       gl={{ alpha: true }}
     >
       <UsMap />
+      <Pipeline />
     </Canvas>
   );
 }
