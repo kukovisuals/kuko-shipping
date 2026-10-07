@@ -46,7 +46,7 @@ Contract: <function signature, JSON shape, or file path>
 ## 3D mode — Kuko decides
 
 ```
-3D_MODE: PAIR
+3D_MODE: BUILD
 ```
 - **PAIR:** Kuko writes the 3D scene. The 3D role reviews, explains, and suggests; it doesn't write scene code unless asked for a specific piece.
 - **BUILD:** The 3D role writes the scene like any other role.
