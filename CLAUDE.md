@@ -1,185 +1,155 @@
-# CLAUDE.md — Cargo Atlas
+# CLAUDE.md — Shipping Tracker
 
-A private 3D map of the US (lower 48 + DC) for one e-commerce company: warehouses, a ring per Census
-region, and — for the region you open — trucks carrying each day's orders to each state, coloured by
-their worst order's delay status, an Alerts panel for late/at-risk shipments, and a stock
-table per product variant per warehouse. Desktop first, works at 375 px.
+A CEO-facing app that answers one question: **"How many orders are late for delivery?"**
+Next.js (full-stack) + React Three Fiber. Phase 1 runs on generated fake data (Death Wish Coffee concept).
 
-**This build is a concept demo for Death Wish Coffee. All brand data is simulated.** Brand name as
-text only: no logos, skull artwork or product photos. A "Simulated data" tag is visible on every screen.
+The full spec lives in `docs/wiki/`. This file says **how to work**. The wiki says **what to build**.
 
-The full spec is `docs/prompt-design.txt`. Read the relevant section before changing behaviour. When
-a big rule or lesson changes, update the spec and this file in the same commit.
+---
 
-## Commands
+## How you work: one role per change
 
-```bash
-npm run dev          # next dev
-npm run build        # next build
-npm run lint         # eslint (includes arch/* layer rules)
-npm test             # vitest run
-npm run typecheck    # next typegen && tsc --noEmit
-npm run bake:land    # tsx scripts/bakeLand.ts → public/map/us.json (needs scripts/data/ne_50m_admin_1_*)
-npm run seed:demo    # tsx scripts/seedDemo.ts (fixed seed 4242, dates relative to today)
-```
+You are a team of specialists. Every change is done by exactly **one role**.
 
-After every milestone or meaningful change: typecheck, test, lint, build — all must pass before commit.
-Commit messages start with the milestone/ticket id (e.g. `M3: seed demo data`).
+1. **Announce the role** at the start of the change: `Role: Backend`.
+2. **Read that role's wiki pages** before writing code.
+3. **Touch only that role's folders.** Need something from another role? Stop and write a handoff (format below).
+4. **Finish the change:** tests pass, and the role's wiki page is updated if behavior changed.
+5. **Commit** with the role as prefix: `[backend] add summary route`.
+6. If a task spans roles, split it. The next role starts only after the previous one is done and green.
 
-## Stack
+### Roles
 
-- Next 16.3 (App Router, **`proxy.ts`, not `middleware.ts`**), React 19.2, TypeScript 5 strict
-- three 0.186, @react-three/fiber 9.8, drei 10.7, postprocessing 3.1
-- Supabase (supabase-js 2.117, @supabase/ssr 0.12) — two projects: staging and production
-- Tailwind 4 (@tailwindcss/postcss), ESLint 9 + eslint-config-next 16
-- Vitest 3 + jsdom + Testing Library; Vercel hosting + @vercel/analytics; Resend SMTP for auth email
-- Fonts self-hosted in `public/fonts`: Inter for everything (smooth, no pixel fonts); `.ui-label` uses the
-  system monospace. 3D labels use `inter-latin-600-normal.woff` — troika reads ttf/otf/woff, **not woff2**
-- `@/*` → `./*` (no `src/`). Vitest: `environment: "node"`; component tests add
-  `// @vitest-environment jsdom` at the top.
+| Role | Owns (folders) | Reads first | Done when |
+|------|----------------|-------------|-----------|
+| **Tech Lead** | root config, `package.json`, `CLAUDE.md`, `docs/wiki/03`, `14` | 00, 03, 14 | App runs; architecture rules hold |
+| **Backend** | `prisma/schema.prisma`, `lib/status-engine/`, `lib/db.ts`, `lib/regions.ts`, `app/api/` | 05, 07, 08 | Engine tests + API tests pass |
+| **Data** | `prisma/seed.ts`, `prisma/seed.config.ts`, `prisma/cities.ts` | 06 | All seed invariants pass |
+| **Frontend** | `app/page.tsx`, `app/globals.css`, `components/dom/`, `lib/store.ts`, `lib/hooks/`, `lib/tokens.ts` | 01, 09 | Panels render real API data |
+| **3D** | `components/three/`, `lib/project.ts` | 10, 11 | Scene renders, 60 fps, <20 draw calls |
+| **QA** | `tests/`, `e2e/`, `vitest.config.ts`, `playwright.config.ts` | 13 | Must-pass checks automated |
 
-**Next 16 differs from training data.** Read `node_modules/next/dist/docs/` before any Next.js work.
-`proxy.ts` exports `proxy` and a static `config.matcher`. Restart `next dev` after adding a `[param]` folder.
+Shared file rule: `lib/tokens.ts` belongs to Frontend. 3D reads it, never edits it.
 
-## Architecture
+### Handoff format
+When you need another role, stop and write this in your reply (and in `docs/handoffs.md`):
 
 ```
-app → features → engine | platform | ui | config → domain
+HANDOFF  from: <role>  to: <role>
+Need:    <one sentence>
+Why:     <what is blocked>
+Contract: <function signature, JSON shape, or file path>
 ```
 
-| Folder | Holds | May import | Never |
-|--------|-------|------------|-------|
-| `domain/` | Rules, formulas, types. Pure TS, test next to each file. Time rules take `now`. | other `domain/` | React, Three, Next, Supabase, `Date.now()` |
-| `ui/` | `theme.ts` + `tokens.css` (a test keeps them equal) | nothing in the project | — |
-| `config/` | Public settings (limits, defaults) | `domain/` | features, app, engine, platform |
-| `platform/` | Supabase clients, one `*Repo.ts` per table, `http.ts`, `auth.ts`, `org.ts`. Starts with `import "server-only"`. | `domain/`, `config/` | React, features, app, engine |
-| `engine/` | Reusable 3D pieces: land, lines, dock, warehouse, trucks, pins, labels, effects | `domain/`, `ui/`, `config/` | features, app, platform |
-| `features/<x>/` | One feature's client code, public API in `index.ts` | own folder, `domain`, `engine`, `ui`, `config` | other features, `app/`, `platform/` |
-| `features/<x>/server/` | Route handlers + server views, API in `server/index.ts` | + `platform/` | other features, `app/` |
-| `app/` | Routes/pages; imports features only via `@/features/<x>` or `@/features/<x>/server` | anything | feature internals |
+---
 
-- `app/api/**/route.ts` is one line: `export { movementPOST as POST } from "@/features/inventory/server";`
-- No `../` imports (lint-enforced) — always `@/…`; `./` siblings are fine.
-- Features talk through callback/slot props wired in `app/_experience/Experience.tsx`
-  (e.g. the shipment card's `action` slot holds the alerts feature's "Acknowledge" button).
-- ESLint `arch/*` `no-restricted-imports` blocks enforce the layers. **Never silence a boundary
-  error; move the code.**
+## 3D mode — Kuko decides
 
-### Server patterns
+```
+3D_MODE: PAIR
+```
+- **PAIR:** Kuko writes the 3D scene. The 3D role reviews, explains, and suggests; it doesn't write scene code unless asked for a specific piece.
+- **BUILD:** The 3D role writes the scene like any other role.
 
-- `platform/supabase.ts`: `adminClient()` (service role, all reads/writes), `authClient()` (cookie
-  session), `refreshAuthSession(request)` for `proxy.ts`.
-- `platform/db.ts`: `run(what, query)` returns data or throws `"<what> failed: …"`; retries once
-  after 1 s on "JWT issued at future".
-- `platform/http.ts`: `readJson`, `ok(extra)`, `fail(error, status, fields?)`.
-  Replies: `200 { ok: true, … }` or `{ error, fields? }` with 400/401/403/404/409/429/502.
-- `platform/auth.ts`: `currentUser()` → `{ id, email }` only for confirmed emails (`getUser()`).
-- `platform/org.ts`: `requireMember(userId, role?)` → `{ orgId, role }` or 403. Every server view and
-  route calls it and filters every query by that `orgId`.
-- Pages load data on the server and pass it to the client scene. `dynamic = "force-dynamic"` on map,
-  inventory and alerts pages. The map refetches every 60 s and on window focus.
+R3F is Kuko's main skill to grow, so PAIR is the default. Kuko can flip it to BUILD.
 
-## Rules that must never break
+---
 
-1. Stock changes only through `apply_movement()`. `on_hand` is never written any other way.
-2. `on_hand` never goes below zero. A refused movement is a 409 to the user.
-3. A shipment takes stock once (`ship_shipment()` is idempotent; the ledger has a unique key).
-4. Every query is filtered by the caller's `org_id` from `requireMember()`. No exceptions.
-5. All reads and writes go through server routes with the service role. The browser never talks
-   to the database.
-6. `viewer` reads only. `staff` adds movements, events, imports and acks. `owner` also edits
-   settings, warehouses and members.
-7. Never store a customer's name, email, phone or street address. Destination = city, region,
-   country, lat, lng.
-8. Every time rule lives in `domain/ship/` and takes `now`. The server passes one `now` per request.
-9. A truck's position is always an **estimate** ("Estimated position" on its card); a single order's
-   position is an estimate unless its latest event has lat/lng.
-10. Imports are idempotent: the same CSV twice changes nothing.
-11. Only confirmed emails count as signed in. Login/forgot-password never reveal whether an email
-    has an account. No public sign-up; the owner invites members.
-12. `proxy.ts` answers 403 to a `POST /api/*` whose `Origin` host differs from `Host`; security
-    headers as in Central Meetup; every redirect goes through `safeNext`.
-13. Never hard-code a warehouse id, an org id or a hex colour outside `ui/theme.ts` / `ui/tokens.css`.
-14. Never hard-code secrets; never commit `.env.local`; nothing in progress touches production.
-15. Simulated data only. "Simulated data" tag on every screen; no real brand logo or artwork in the repo.
+## Architecture rules (never break these)
 
-## Data (Supabase)
+1. **Components never compute status.** They display what the API returns.
+2. **The Status Engine is a pure function.** Same input → same output. No database calls inside it.
+3. **Only the engine job writes derived fields** (`region`, `stage`, `timing`, `daysLate`, `computedAt`).
+4. **Numbers are computed, never typed.** No hard-coded counts in UI, API, or tests (except test fixtures).
+5. **DOM for text, R3F for space.** Title, totals, cards, sidebar, list, legend = React DOM. Map, lanes, dots, warehouses, stacks = R3F.
+6. **One projection helper:** `lib/project.ts` → `project(lat, lng) => [x, y]`. Nothing else projects coordinates.
+7. **One color source:** `lib/tokens.ts`, used by CSS and 3D materials.
+8. **Every color has a pattern too** (solid / hatched / dotted). State words appear only in the legend.
+9. **Multiple warehouses are supported in data.** v1 seeds one and shows all combined. APIs return warehouses as a list.
 
-- Migrations in `supabase/migrations/NNNN_name.sql`, one per change; additive only once in
-  production (rename/drop takes two releases). `0001_init.sql` holds the initial schema (spec §7).
-- Every table has `org_id` (except `organisations`), RLS enabled, all revoked from anon/authenticated,
-  no policies, no public views.
-- DB functions are `security definer`, `set search_path = ''`, granted to service_role only:
-  `apply_movement`, `ship_shipment`, `add_event`, `ack_shipment`, `import_batch`.
-- Store all times in UTC; count days in UTC; display in the company time zone (America/New_York).
-- Events can arrive out of order: status follows the latest `at`, never arrival order.
+---
 
-## Domain rules (tested in `domain/`)
+## Stack and commands
 
-- **Map:** 1 scene unit = 1°. `x = lng`, `z = −lat`, Y up. US only: lower 48 + DC, land drawn as one solid slab extruded from the state outlines (no grid; the 0.25° grid is only for tests),
-  one anchor city per state (`domain/map/usStates.ts`; a test keeps every anchor on land). Routes are
-  ground curves warehouse → anchor bowing south-west (`MAP.routeBend`). One pin per state. Sizes live in `MAP`.
-- **Regions** (`domain/map/regions.ts`, `domain/ship/regions.ts`): the 4 Census regions. The map draws
-  trucks for **one open region at a time**; closed regions are rings of open orders by status, and
-  the region panel shows each region's on-time rate and lists the open region's problem trucks.
-- **Trucks** (`domain/ship/trucks.ts`): one per warehouse + state + UTC ship day; unshipped orders
-  ride the state's loading truck on the dock. Colour = worst open order (late > at_risk > on_time);
-  a truck with no open orders is not drawn. Demo delays come by truck, never sprinkled per order.
-- **Delay** (`domain/ship/delay.ts`): `promised = promised_at ?? placed_at + sla_days`. Delivered →
-  `on_time` / `delivered_late`. Otherwise, first match: `late` (now > promised) → `at_risk`
-  (exception, inside risk window, stalled > stall_hours, unshipped > handling_days) → `on_time`.
-  `days_late = ceil((ref − promised)/day)`. Remaining = `carrier_eta_at − now` or `null`
-  ("No carrier ETA") — never invent a remaining time. Every result carries a `reason` string.
-- **Progress** (`domain/ship/progress.ts`, `trucks.ts`): loading 0; on the road
-  `clamp((now − departed)/(latest open promise − departed), 0, 0.95)`; late trucks hold at 0.95
-  and pulse; a truck fades when its last order is delivered.
-- **Next day** (`domain/ship/nextDay.ts`): orders placed today (UTC) and not shipped ride tomorrow's
-  trucks; the region panel's "Next day" tab counts them per region with the biggest states, and
-  counts older unshipped orders apart. `TODO(owner)`: a same-day cut-off.
-- **Alerts sort:** `late` by days late desc, then `at_risk`, then by order date.
+Next.js (App Router, TypeScript) · three, @react-three/fiber, @react-three/drei · zustand · PostgreSQL + Prisma · us-atlas, topojson-client, d3-geo · Vitest · Playwright
 
-## 3D scene and React
+Create these npm scripts in M1:
 
-- One `<Canvas>` in `app/_experience/Experience.tsx`; `MapControls` tilt 20°–70°; bloom on emissive
-  parts only.
-- Instanced meshes for land, trucks and pins; one shared clock uniform, not per-mesh `useFrame`.
-- Phone budget: DPR ≤ 1.25, no shadows, ≥ 30 fps; desktop DPR ≤ 2, ≥ 55 fps. Cap 2,000 trucks
-  (show late + at-risk, count the rest); count badges ≤ 40. `prefers-reduced-motion`: no motion, no pulsing.
-- Motion = pure `step(state, dt)` in `domain/` + a hook in `features/` calling it from `useFrame`.
-  Prove motion with `step()` tests via `renderHook`, not screenshots (automated Chrome is throttled).
-- `useEffect` only to sync with the outside world; derived values in render/`useMemo`; latest-callback
-  refs use `useEffectEvent`.
-- Use drei `Text` with the self-hosted font, not drei `Html` (React 19 unmount error).
-- Seed every random value drawn on both server and browser, or hydration differs.
-- Status colours: `on_time` blue, `at_risk` amber, `late` red, `delivered_late` dim red — from the theme.
-- **Two looks, one design**: a Dark / Light toggle in the region panel, saved in the `look` cookie
-  (read on the server, set on `<html data-theme>`). Both looks draw the same scene and panels — only
-  colours change; never give one look its own layout or pieces. `ui/theme.ts` has `THEME` (dark) and
-  `LIGHT_THEME` with the same tokens; `tokens.css` mirrors both (`@theme static` +
-  `[data-theme="light"]`). Engine pieces read colours from `usePalette()`, never `THEME`; HTML overlays
-  use `cssVar(token)`. Light has no bloom and no tone mapping (set in `Atmosphere`).
-- Only one information panel (the region panel, right), which can be hidden to an "On-time rate" button;
-  the legend is a single line at the bottom.
-- Style follows the clean reference: solid land slab, donut rings, rounded cards, soft shadows, round dots.
-- Trucks are one plain cube in the status colour, no cab, wheels or logos.
-- **Replay** (`domain/ship/replay.ts`): a bar plays the last 7 days back (a day per 4 s at 1×, 2×/4×);
-  the map is rebuilt from `shipmentsAsOf(shipments, at)` once per 10 simulated minutes. Reduced motion: slider only.
+| Command | Does |
+|---------|------|
+| `npm run dev` | Start the app |
+| `npm run db:migrate` | `prisma migrate dev` |
+| `npm run db:seed` | Run the seed generator |
+| `npm run engine` | Run the status engine job over all orders |
+| `npm test` | Vitest (engine, seed, API) |
+| `npm run test:e2e` | Playwright |
 
-## Testing
+Reset loop: `db:migrate` → `db:seed` → `engine` → `dev`.
 
-- Every domain rule gets a test next to it. Cover truck grouping (worst status wins), "no carrier
-  ETA", out-of-order events, and an order placed at 23:30 local time.
-- Never call `Date.now()` in render or in `domain/`; pass `now` in.
+**Prisma notes:** enums must be multi-line. Prisma 7 puts the database URL in `prisma.config.ts`, not the schema. Follow what `prisma init` generates.
 
-## Working rules
+---
 
-- Build milestones M0–M9 from spec §11 in order (M9 Shopify is skipped for this build). Tickets live
-  in `docs/tickets.md`; design notes in `docs/software-design.md`; flow in `docs/workflow.md`.
-- Workflow: local (staging DB) → `staging` branch → owner OK → migration on production → `main`.
-- Stop and ask only for things outside the folder: Supabase/Vercel projects, `.env.local` keys, SQL
-  to paste (give the file, the **project name** and the editor link — never production before
-  release), the Natural Earth files (`scripts/data/`), email setup, or a real-phone check.
-- Don't decide open owner questions (business vs calendar days, per-destination SLAs, split
-  shipments): leave `TODO(owner)` and use the spec defaults.
-- Uploads capped at 4 MB (Vercel limit 4.5 MB); CSV ≤ 5,000 rows.
-- If the same fix fails 3 times, stop and report what was tried.
+## Build order
+
+Work top to bottom. Don't start a milestone until the previous one is green.
+
+| # | Milestone | Role | Done when |
+|---|-----------|------|-----------|
+| M1 | Project setup (wiki 04) | Tech Lead | Title renders as DOM, test cube renders in Canvas, scripts exist |
+| M2 | Schema + first migration (wiki 05) | Backend | `db:migrate` succeeds |
+| M3 | Status engine + unit tests (wiki 07) | Backend | Table-driven tests pass for every stage and both late rules |
+| M4 | Seed generator (wiki 06) | Data | Seed + engine run; all 6 invariants pass |
+| M5 | API routes (wiki 08) | Backend | 4 routes return documented shapes; API tests pass |
+| M6 | DOM panels on real data (wiki 09) | Frontend | Header, Total, Sidebar, LateList, Legend show API data |
+| M7 | Map: regions + projection (wiki 10) | 3D | US map with 4 regions and AK/HI insets renders |
+| M8 | Lanes, dots, destinations, warehouses, stacks (wiki 10) | 3D | All objects render from API data within budget |
+| M9 | Callouts ① and ② + keyboard + reduced motion (wiki 11) | Frontend → 3D | Both callouts work |
+| M10 | E2E + must-pass checks (wiki 13) | QA | All 7 checks automated or documented |
+
+---
+
+## Open questions — use these defaults, never block
+
+Defaults are provisional. Use them, mention them in the commit, and keep going. Kuko makes the final call.
+
+| ID | Question | Default for now |
+|----|----------|-----------------|
+| OPEN-02 | At-risk in v1? | Not built. Enum value exists, unused. |
+| OPEN-03 | What is a lane? | One straight line from warehouse to each destination city. |
+| OPEN-04 | Late rule | Implement both; `LATE_RULE` env, default `B`. |
+| OPEN-05 | State → region | US Census regions (Northeast, Midwest, South, West). |
+| OPEN-06 | Dot = order or shipment? | One dot per shipment. |
+| OPEN-07 | Refresh interval | 5 minutes. |
+| OPEN-08 | Warehouse location | Placeholder: Newark, NJ (real coordinates). |
+| OPEN-09 | Dots move? | No motion in v1. |
+| OPEN-10 | `Location` vs `Warehouse` | Keep `Location`. |
+| OPEN-11 | Order split before shipping | Accept one assigned warehouse. |
+
+---
+
+## Ask Kuko before
+
+- Changing the schema beyond wiki page 05.
+- Adding a dependency not listed in the stack.
+- Deleting data or files outside your role's folders.
+- Overriding a decision in `docs/wiki/14-decisions-log.md`.
+- Writing 3D scene code while `3D_MODE: PAIR`.
+
+## Never
+
+- Compute status in a component or API route.
+- Hard-code display numbers.
+- Edit another role's folders without a handoff.
+- Mark a milestone done with failing tests.
+- Put WebGL code on the server (Canvas is client-only, loaded with `ssr: false`).
+
+## After every change
+
+Reply with three lines:
+
+```
+Role: <role>   Milestone: <M#>
+Changed: <files>
+Next: <next step, or HANDOFF to <role>>
+```
