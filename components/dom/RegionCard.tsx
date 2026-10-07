@@ -9,8 +9,10 @@ type Props = { name: string; count: number; onTime: number; late: number; dimmed
 export default function RegionCard({ name, count, onTime, late, dimmed }: Props) {
   return (
     <div className="region-card" data-dimmed={dimmed || undefined}>
-      <div className="eyebrow">{name}</div>
-      <div className="region-card-total">{fmt(count)}</div>
+      <div className="region-card-head">
+        <span className="region-card-name">{name}</span>
+        <span className="mono muted">{fmt(count)}</span>
+      </div>
       <Bar name={name} onTime={onTime} late={late} />
       <div className="bar-counts">
         <span style={{ flexGrow: onTime }}>{fmt(onTime)}</span>

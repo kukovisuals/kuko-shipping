@@ -410,7 +410,7 @@ button {
 /* ---- Region card (pinned on the map by the 3D scene) ---- */
 .region-card {
   width: 150px;
-  padding: 10px 12px;
+  padding: 9px 12px 8px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -423,12 +423,20 @@ button {
   opacity: 0.35;
 }
 
-.region-card-total {
-  margin: 2px 0 8px;
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
+.region-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.region-card-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.region-card .bar-counts {
+  font-size: 11px;
 }
 
 /* Reduced motion: show the end state at once. */
