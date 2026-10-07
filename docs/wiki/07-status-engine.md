@@ -63,9 +63,18 @@ Note: Shopify has no "Packed" status. Label purchased or printed is the closest 
 
 Until decided, the engine implements **both**, selected by config: `LATE_RULE=A` or `LATE_RULE=B`.
 
-- **daysLate** = whole days past the chosen threshold. 0 if not late.
+- **daysLate** = whole days past the chosen threshold, rounded up, so a late order is always at least +1d. 0 if not late.
+- **Delivered orders are never late.** Both rules say "and not delivered".
+- **Rule A with no estimate** is on time (the engine cannot call it late). With several open shipments, the earliest estimate counts.
+- **Rule B threshold:** `createdAt` + 7 days. Exactly 7 days is still on time.
 - **At-risk:** not implemented until OPEN-02 is decided.
 - Problem events (`DELAYED`, `ATTEMPTED_DELIVERY`, `FAILURE`) are candidate at-risk signals.
+
+## Config
+`computeStatus(input, lateRule = 'B')`. The rule is an argument, not an env read, so the function stays pure. The job reads `LATE_RULE` through `lateRuleFromEnv()` and passes it in.
+
+## Several shipments
+One shipment delivered → the order is Delivered (follows the stage table above, even if the other shipment is still moving). Otherwise the first matching stage over any shipment wins.
 
 ## Region rule
 `destinationState` → region, using the table in `lib/regions.ts`. Which mapping: OPEN-05.
