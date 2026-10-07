@@ -50,7 +50,10 @@ What every zone of the one-page design shows, and the visual rules.
 **Map (center column)**
 - US map split into four regions, including Alaska and Hawaii insets.
 - Each region has a card: name, total, one proportional bar, counts.
+- Regions are drawn **apart, with a gap** between them (D-009).
 - Lanes: lines of order dots ending at destination markers.
+  - In the warehouse's region (NE): straight spokes from the warehouse to each destination.
+  - In every other region: straight **horizontal** lines at the city's latitude. They run west to the destination marker from a common end just past the region's east side, with an arrowhead there pointing west.
 - Late lanes use the late fill (dashed, accent color).
 - Warehouse marker in NE with spokes to nearby destinations.
 
@@ -81,7 +84,7 @@ What every zone of the one-page design shows, and the visual rules.
 ## Known gaps
 - OPEN-01: Packed is 1,840 but In transit is 400. Where are the other 1,440?
 - OPEN-02: At-risk is not in the legend. Is it in v1?
-- OPEN-03: Lanes run horizontally across regions, but there is one NE warehouse. What does a lane represent?
+- ~~OPEN-03~~ Closed by [D-009](14-decisions-log.md): horizontal lanes outside the warehouse region, spokes inside it.
 
 ## Depends on
 [Glossary](02-glossary.md) · [Seed Data](06-seed-data.md)

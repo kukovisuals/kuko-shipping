@@ -115,7 +115,7 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 
 | ID | Question | Default for now |
 |----|----------|-----------------|
-| OPEN-03 | What is a lane? | One straight line from warehouse to each destination city. |
+| OPEN-03 | What is a lane? | Decided (D-009): in the warehouse's region, a straight spoke warehouse → city; in every other region, a straight horizontal line ending at the region's east side, flowing west to the city. |
 | OPEN-04 | Late rule | Implement both; `LATE_RULE` env, default `B`. |
 | OPEN-05 | State → region | US Census regions (Northeast, Midwest, South, West). |
 | OPEN-06 | Dot = order or shipment? | One dot per shipment. |

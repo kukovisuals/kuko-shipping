@@ -40,7 +40,7 @@ One meaning per term. Every page uses these words exactly.
 | **Order** | One customer purchase. |
 | **Shipment** | One package (Shopify calls it a Fulfillment). One order can have several. *(OPEN-06.)* |
 | **Stack** | The visual pile of waiting orders for one region at one stage. |
-| **Lane** | A line on the map carrying order dots to destinations. *(OPEN-03.)* |
+| **Lane** | A line on the map carrying order dots to a destination city: a spoke from the warehouse inside the warehouse's region, a horizontal line flowing west everywhere else. *(D-009.)* |
 | **Total** | All orders counted on the page. |
 
 ## Adding a term

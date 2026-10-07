@@ -12,7 +12,7 @@ Everything that still needs a decision. When one is answered, log it in the [Dec
 
 | ID | Question | Owner | Blocks | Status |
 |----|----------|-------|--------|--------|
-| OPEN-03 | Lanes run horizontally, but there's one NE warehouse. What does a lane represent? | Design | 3D, API | Open |
+| OPEN-03 | Lanes run horizontally, but there's one NE warehouse. What does a lane represent? | Design | 3D, API | Closed by D-009 |
 | OPEN-04 | Late rule: A (past carrier estimate) or B (7+ days since order)? | Product | Engine, Seed | Open |
 | OPEN-05 | Region mapping: which states go in which region? (US Census regions are a common standard.) | Product | Engine, 3D | Open |
 | OPEN-06 | Does one map dot = one order or one shipment? | Design | Data model, 3D | Open |

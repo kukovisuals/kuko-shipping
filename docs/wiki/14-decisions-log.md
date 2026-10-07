@@ -63,3 +63,10 @@ What was decided, when, and why. Newest at the bottom. Never edit an old entry; 
 - **Date:** 2026-10-07
 - **Decision:** Designer chooses the pipeline visual. It must show counts per region per stage, keep backorder visibly separate, reuse the legend fills, and read in 5 seconds.
 - **Affects pages:** 01
+
+### D-009 — What a lane is, and regions drawn apart
+- **Date:** 2026-10-07
+- **Decision:** (1) In the **warehouse's own region**, a lane is a straight spoke from the warehouse to a destination city. (2) In **every other region**, a lane is a straight horizontal line at the city's latitude, running west to the city marker from a shared end just past the region's east side; its order dots sit on it and an arrowhead at the east end points west. (3) The four regions are drawn **apart with a gap** between them (the design image already shows this).
+- **Why:** Kuko, after seeing the M8 build: the first default (a straight line from the warehouse to every city) made a starburst and did not match the design. This closes OPEN-03.
+- **Replaces:** the OPEN-03 default in CLAUDE.md. Supersedes the "straight line warehouse → city" wording in page 08.
+- **Affects pages:** 01, 02, 08, 10
