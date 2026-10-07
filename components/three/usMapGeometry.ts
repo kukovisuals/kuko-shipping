@@ -6,10 +6,10 @@ import type { GeometryCollection, GeometryObject, Topology } from 'topojson-spec
 import { BufferGeometry, Float32BufferAttribute, Path, Shape, ShapeGeometry, Vector2 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import atlas from 'us-atlas/states-10m.json'
-import { albers, toScene } from '@/lib/project'
-import { REGIONS, regionForFips, type Region } from '@/lib/regions'
+import { albers, toScene } from '../../lib/project'
+import { REGIONS, regionForFips, type Region } from '../../lib/regions'
 
-type Pt = [number, number]
+export type Pt = [number, number]
 
 const topology = atlas as unknown as Topology
 const states = topology.objects.states as GeometryCollection
@@ -78,7 +78,7 @@ function polygonShapes(rings: Pt[][]): Shape[] {
 }
 
 // Regions are drawn apart (D-009): each is nudged away from the others, in map units.
-const GAP = 28
+export const GAP = 48
 const REGION_OFFSET: Record<Region, Pt> = {
   WEST: [-GAP, 0],
   MIDWEST: [0, GAP * 0.7],
@@ -87,10 +87,20 @@ const REGION_OFFSET: Record<Region, Pt> = {
 }
 export const regionOffset = (region: Region): Pt => REGION_OFFSET[region]
 
-function regionGeometry(region: Region): BufferGeometry {
-  const parts = feature(topology, states)
+function regionPolygons(region: Region): Pt[][][] {
+  return feature(topology, states)
     .features.filter((f) => regionOf(f.id) === region)
     .flatMap((f) => projectedPolygons(f))
+}
+
+// Every ring of a region's states, already moved by the region's offset. Lanes use these to stay clear.
+function regionRings(region: Region): Pt[][] {
+  const [dx, dy] = REGION_OFFSET[region]
+  return regionPolygons(region).flatMap((rings) => rings.map((ring) => ring.map(([x, y]): Pt => [x + dx, y + dy])))
+}
+
+function regionGeometry(region: Region): BufferGeometry {
+  const parts = regionPolygons(region)
     .flatMap(polygonShapes)
     .map((shape) => new ShapeGeometry(shape))
   // Merging is what keeps this at 4 draw calls instead of ~50.
@@ -136,6 +146,8 @@ export type UsMap = {
   regionOutlines: BufferGeometry
   // Easternmost point of each region (after the gap offset), where its horizontal lanes end.
   eastEdge: Record<Region, number>
+  // Each region's state rings in scene units (after the gap offset).
+  rings: Record<Region, Pt[][]>
 }
 
 let cached: UsMap | null = null
@@ -153,6 +165,7 @@ export function usMap(): UsMap {
     cached = {
       regions,
       eastEdge,
+      rings: Object.fromEntries(REGIONS.map(({ id }) => [id, regionRings(id)])) as Record<Region, Pt[][]>,
       stateBorders: lineGeometry(
         REGIONS.map(({ id }) => ({
           filter: (a, b) => a !== b && inRegion(id, a) && inRegion(id, b),
