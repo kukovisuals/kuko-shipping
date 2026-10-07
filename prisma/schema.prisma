@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Schema follows docs/wiki/05-data-model.md. Change it there first.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +7,86 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Region {
+  WEST
+  MIDWEST
+  NE
+  SOUTH
+}
+
+enum Stage {
+  ORDERED
+  BACKORDER
+  PACKED
+  IN_TRANSIT
+  DELIVERED
+}
+
+enum Timing {
+  ON_TIME
+  AT_RISK
+  LATE
+}
+
+model Location {
+  id        String     @id @default(cuid())
+  shopifyId String?    @unique // null in Phase 1
+  name      String // e.g. "NJ Warehouse"
+  city      String
+  state     String // two-letter code
+  lat       Float
+  lng       Float
+  orders    Order[] // orders waiting here
+  shipments Shipment[] // shipments that left from here
+}
+
+model Order {
+  id                       String     @id @default(cuid())
+  shopifyId                String?    @unique // null in Phase 1
+  name                     String // e.g. "#48210"
+  createdAt                DateTime
+  destinationCity          String
+  destinationState         String // two-letter code
+  lat                      Float
+  lng                      Float
+  displayFulfillmentStatus String // Shopify order-level status
+  holdReason               String? // e.g. INVENTORY_OUT_OF_STOCK
+  assignedLocationId       String // warehouse it waits at before shipping
+  assignedLocation         Location   @relation(fields: [assignedLocationId], references: [id])
+  shipments                Shipment[]
+
+  // derived — Status Engine only
+  region     Region?
+  stage      Stage?
+  timing     Timing?
+  daysLate   Int?
+  computedAt DateTime?
+
+  @@index([assignedLocationId])
+}
+
+model Shipment {
+  id                  String          @id @default(cuid())
+  shopifyId           String?         @unique // null in Phase 1
+  orderId             String
+  order               Order           @relation(fields: [orderId], references: [id])
+  locationId          String // warehouse it shipped from
+  location            Location        @relation(fields: [locationId], references: [id])
+  createdAt           DateTime
+  inTransitAt         DateTime?
+  estimatedDeliveryAt DateTime?
+  deliveredAt         DateTime?
+  events              ShipmentEvent[]
+
+  @@index([locationId])
+}
+
+model ShipmentEvent {
+  id         String   @id @default(cuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id])
+  status     String // Shopify FulfillmentEventStatus, e.g. IN_TRANSIT
+  happenedAt DateTime
 }
