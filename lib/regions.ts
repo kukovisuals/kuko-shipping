@@ -24,3 +24,16 @@ export function regionForState(state: string): Region {
   if (!region) throw new Error(`Unknown state code: "${state}"`)
   return region
 }
+
+// The four regions in display order, with the names the API returns.
+export const REGIONS: { id: Region; name: string }[] = [
+  { id: 'WEST', name: 'West' },
+  { id: 'MIDWEST', name: 'Midwest' },
+  { id: 'NE', name: 'NE' },
+  { id: 'SOUTH', name: 'South' },
+]
+
+export function parseRegion(value: string): Region | null {
+  const id = value.toUpperCase()
+  return REGIONS.find((r) => r.id === id)?.id ?? null
+}
