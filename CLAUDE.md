@@ -118,7 +118,7 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 | OPEN-03 | What is a lane? | Decided (D-009): in the warehouse's region, a straight spoke warehouse → city; in every other region, a straight horizontal line ending at the region's east side, flowing west to the city. |
 | OPEN-04 | Late rule | Implement both; `LATE_RULE` env, default `B`. |
 | OPEN-05 | State → region | US Census regions (Northeast, Midwest, South, West). |
-| OPEN-06 | Dot = order or shipment? | One dot per shipment. |
+| OPEN-06 | Dot = order or shipment? | Decided (D-011): one bead per order day per lane, area by shipment count, capped. |
 | OPEN-07 | Refresh interval | 5 minutes. |
 | OPEN-08 | Warehouse location | Placeholder: Newark, NJ (real coordinates). |
 | OPEN-09 | Dots move? | No motion in v1. |

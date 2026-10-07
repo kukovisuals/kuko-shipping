@@ -15,7 +15,7 @@ Everything that still needs a decision. When one is answered, log it in the [Dec
 | OPEN-03 | Lanes run horizontally, but there's one NE warehouse. What does a lane represent? | Design | 3D, API | Closed by D-009 |
 | OPEN-04 | Late rule: A (past carrier estimate) or B (7+ days since order)? | Product | Engine, Seed | Open |
 | OPEN-05 | Region mapping: which states go in which region? (US Census regions are a common standard.) | Product | Engine, 3D | Open |
-| OPEN-06 | Does one map dot = one order or one shipment? | Design | Data model, 3D | Open |
+| OPEN-06 | Does one map dot = one order or one shipment? | Design | Data model, 3D | Closed by D-011: one bead per order day, sized by shipments |
 | OPEN-07 | Refresh interval (default 5 minutes)? | Tech Lead | API, Frontend | Open |
 | OPEN-08 | Warehouse location (city + coordinates)? | Product | Seed, 3D | Open |
 | OPEN-09 | Do order dots move along lanes? Speed? Always, or only on load? | Design | 3D | Open |
