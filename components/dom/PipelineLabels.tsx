@@ -15,6 +15,9 @@ export const StageTitle = ({ text }: { text: string }) => <span className="pl-st
 // Small note on a flow arrow ("no stock", "restocked").
 export const FlowNote = ({ text }: { text: string }) => <span className="pl-note">{text}</span>
 
+// One big count for a collapsed stage (callout ①).
+export const StageTotal = ({ value }: { value: number }) => <span className="pl-total">{fmt(value)}</span>
+
 // Text inside the Store and In transit circles.
 export const CircleLabel = ({ text }: { text: string }) => <span className="pl-circle">{text}</span>
 

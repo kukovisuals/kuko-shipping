@@ -71,7 +71,7 @@ button {
   pointer-events: auto;
 }
 
-.pipeline { grid-area: pipeline; min-height: 420px; }
+.pipeline { grid-area: pipeline; min-height: 420px; pointer-events: none; } /* the Store button inside is pinned by 3D */
 .map { grid-area: map; pointer-events: none; }
 .summary { grid-area: summary; padding: 24px 32px; }
 
@@ -418,4 +418,16 @@ button {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Collapsed stage (callout ①): one big count in a box. */
+.pl-total {
+  display: block;
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
 }
