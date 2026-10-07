@@ -34,9 +34,10 @@ All from the API, all instanced or batched: **15 draw calls** (counted from the 
 - `MapObjects.tsx` (from `/api/lanes`), per D-009:
   - **Warehouse's region (NE):** a lane is a straight spoke, warehouse → city.
   - **Every other region:** a horizontal line at the city's latitude, from a shared end `END_MARGIN` past the region's east edge, flowing west to the city. An arrowhead at the east end points west.
-  - On time is solid; late is dashed and accent-colored. One dot per shipment (OPEN-06): spaced `DOT_SPACING` apart, closer on a busy lane so every shipment gets a dot. One marker per destination city (accent if any lane to it is late). Warehouses come with their own `region` from the API.
+  - **One lane per city** (the 51 state capitals, D-010). Shipments are laid out from the city outward: on-time first (solid line, dark dots), then late (dashed accent line, accent dots), so a lane shows its own on-time/late split. A city's marker is accent-colored when it has more late shipments than on-time ones.
+  - **No overlaps:** horizontal lanes in a region are spread so they sit at least `LANE_GAP` apart (`spread.ts`); a marker may sit slightly off its true latitude. One dot per shipment (OPEN-06): spaced `DOT_SPACING` apart, closer on a busy lane so every shipment gets a dot. Warehouses come with their own `region` from the API.
   - Lanes are batched, not one drei `<Line>` each, which resolves OPEN-11.
-- `Pipeline.tsx` + `pipelineLayout.ts` (from `/api/pipeline`): stacks of thin slabs, one per region per stage. Every stack shares one scale, so height is proportional to count. Store circle, In transit dotted circle, and the "no stock" / "restocked" arrows. It fits into the `.pipeline` column, as the map fits into `.map`.
+- `Pipeline.tsx` + `pipelineLayout.ts` (from `/api/pipeline`): stacks of thin slabs, one per region per stage. Every stack shares one scale, so height is proportional to count. Store and In transit circles, and the flow lines (D-010): Store → Ordered, Ordered → Packed, Ordered → Backorder ("no stock"), Backorder → Packed ("restocked"), Packed → In transit. Labels (counts above, region names below, stage titles, notes, circle text) are the DOM pieces from `components/dom/PipelineLabels.tsx`, pinned with drei `<Html>`. It fits into the `.pipeline` column, as the map fits into `.map`.
 - `Instanced.tsx`: many copies of one shape in one draw call, each with its own color.
 
 - Not yet: hatch patterns on regions, hover, fade for the selected region (M9).

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pipeline } from '../../lib/hooks/types'
-import { pipelineLayout } from './pipelineLayout'
+import { PIPELINE_W, pipelineLayout } from './pipelineLayout'
 
 const data: Pipeline = {
   computedAt: null,
@@ -24,6 +24,6 @@ describe('pipelineLayout', () => {
   })
 
   it('keeps stacks inside the column', () => {
-    for (const s of stacks) expect(s.x + s.w).toBeLessThanOrEqual(260)
+    for (const s of stacks) expect(s.x + s.w).toBeLessThanOrEqual(PIPELINE_W)
   })
 })
