@@ -33,6 +33,7 @@ export type Lanes = {
     region: Region
     timing: 'ON_TIME' | 'LATE'
     shipments: number
+    days: { date: string; ageDays: number; shipments: number }[] // newest first (D-011)
     points: { lat: number; lng: number }[]
     destinations: { lat: number; lng: number; city: string }[]
   }[]
