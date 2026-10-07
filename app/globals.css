@@ -369,16 +369,37 @@ button {
 }
 
 .pl-store {
+  position: relative;
   display: block;
+  width: 100%;
+  height: 100%;
   padding: 0;
   background: none;
   border: 0;
+  border-radius: 50%;
   font-size: 15px;
   font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
+  transition: background 300ms ease, color 300ms ease;
+}
+
+/* Pressed = the stacks are collapsed: the Store circle fills in. */
+.pl-store[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* The ① sits just outside the circle, so the word Store keeps the room. */
+.pl-store .callout {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  margin: 0;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .pl-store:focus-visible {
