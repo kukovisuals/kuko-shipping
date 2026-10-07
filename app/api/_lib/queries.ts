@@ -81,7 +81,7 @@ export async function getLanes() {
       select: {
         locationId: true,
         order: {
-          select: { destinationCity: true, destinationState: true, lat: true, lng: true, region: true, timing: true },
+          select: { destinationCity: true, destinationState: true, lat: true, lng: true, region: true, timing: true, createdAt: true },
         },
       },
     }),
@@ -95,6 +95,7 @@ export async function getLanes() {
     region: Region
     timing: NonNullable<(typeof shipments)[number]['order']['timing']>
     shipments: number
+    days: Map<string, number> // order day (YYYY-MM-DD, UTC) -> shipments
     points: { lat: number; lng: number }[]
     destinations: { lat: number; lng: number; city: string }[]
   }
@@ -106,9 +107,11 @@ export async function getLanes() {
     const id = `lane-${locationId}-${order.destinationState}-${order.destinationCity}-${order.timing}`
       .toLowerCase()
       .replace(/[^a-z0-9-]+/g, '-')
+    const day = order.createdAt.toISOString().slice(0, 10)
     const lane = lanes.get(id)
     if (lane) {
       lane.shipments += 1
+      lane.days.set(day, (lane.days.get(day) ?? 0) + 1)
       continue
     }
     const to = { lat: order.lat, lng: order.lng }
@@ -118,16 +121,29 @@ export async function getLanes() {
       region: order.region,
       timing: order.timing,
       shipments: 1,
+      days: new Map([[day, 1]]),
       points: [from, to],
       destinations: [{ ...to, city: order.destinationCity }],
     })
   }
 
+  // A day's age is counted from the engine run, so it matches the timing the engine wrote.
+  const today = Date.parse((computedAt ?? new Date().toISOString()).slice(0, 10))
+  const ageDays = (day: string) => Math.round((today - Date.parse(day)) / 86_400_000)
+
   return {
     computedAt,
     // `region` is the warehouse's own region: the map draws spokes there and horizontal lanes elsewhere (D-009).
     warehouses: warehouses.map(({ id, name, city, state, lat, lng }) => ({ id, name, city, region: regionForState(state), lat, lng })),
-    lanes: [...lanes.values()].sort((a, b) => a.id.localeCompare(b.id)),
+    // `days` groups a lane's shipments by order day, newest first (D-011): one bead each on the map.
+    lanes: [...lanes.values()]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map(({ days, ...lane }) => ({
+        ...lane,
+        days: [...days]
+          .map(([date, shipments]) => ({ date, ageDays: ageDays(date), shipments }))
+          .sort((a, b) => a.ageDays - b.ageDays),
+      })),
   }
 }
 

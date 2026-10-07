@@ -93,6 +93,15 @@ describe('GET /api/lanes', () => {
       expect(lane.points).toHaveLength(2)
       expect(lane.points[0]).toEqual({ lat: (warehouse.get(lane.warehouseId) as { lat: number }).lat, lng: (warehouse.get(lane.warehouseId) as { lng: number }).lng })
       expect(lane.destinations).toEqual([{ ...lane.points[1], city: expect.any(String) }])
+      // One entry per order day, newest first, adding up to the lane's shipments (D-011).
+      const ages = lane.days.map((d: { ageDays: number }) => d.ageDays)
+      expect(ages).toEqual([...new Set(ages)].sort((a, b) => (a as number) - (b as number)))
+      for (const d of lane.days) {
+        expect(d).toEqual({ date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), ageDays: expect.any(Number), shipments: expect.any(Number) })
+        expect(d.ageDays).toBeGreaterThanOrEqual(0)
+        expect(d.shipments).toBeGreaterThanOrEqual(1)
+      }
+      expect(lane.days.reduce((n: number, d: { shipments: number }) => n + d.shipments, 0)).toBe(lane.shipments)
     }
     expect(new Set(body.lanes.map((l: { id: string }) => l.id)).size).toBe(body.lanes.length)
   })
