@@ -15,3 +15,25 @@ export type LateOrders = {
   orders: { name: string; city: string; daysLate: number }[]
   remaining: number
 }
+
+export type Pipeline = {
+  computedAt: string | null
+  ordered: Record<Region, number>
+  backorder: Record<Region, number>
+  packed: Record<Region, number>
+  inTransit: number
+}
+
+export type Lanes = {
+  computedAt: string | null
+  warehouses: { id: string; name: string; city: string; lat: number; lng: number }[]
+  lanes: {
+    id: string
+    warehouseId: string
+    region: Region
+    timing: 'ON_TIME' | 'LATE'
+    shipments: number
+    points: { lat: number; lng: number }[]
+    destinations: { lat: number; lng: number; city: string }[]
+  }[]
+}
