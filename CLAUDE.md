@@ -127,6 +127,14 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 
 ---
 
+## Parked on purpose (do not turn on without Kuko)
+
+| What | State | Switch | Back on when |
+|------|-------|--------|--------------|
+| **Pipeline column** (Store, stacks, In transit; callout ①) | Hidden. Code, API and tests stay. | `SHOW_PIPELINE` in `app/page.tsx` is `false` | Kuko says so. Then: Frontend sets it to `true`, QA runs `E2E_PIPELINE=1 npm run test:e2e`. See D-012. |
+
+While something is parked: don't enable it in a commit, don't build new features on it, and keep its tests skipped with a reason, not deleted. Kuko tells you when to bring it back.
+
 ## Ask Kuko before
 
 - Changing the schema beyond wiki page 05.

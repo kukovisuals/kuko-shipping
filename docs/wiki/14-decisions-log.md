@@ -83,3 +83,10 @@ What was decided, when, and why. Newest at the bottom. Never edit an old entry; 
 - **Why:** Kuko, after seeing M8: one dot per shipment made the map busy (a lane held up to 236 dots) without saying more. Grouping by day keeps every lane under 15 beads and shows how old the late orders are.
 - **Replaces:** the "one dot per shipment" default for OPEN-06 and the dot wording of D-010 (2).
 - **Affects pages:** 08, 10
+
+### D-012 — Pipeline column hidden until Kuko says to bring it back
+- **Date:** 2026-10-07
+- **Decision:** (1) The pipeline column (Store, Ordered / Backorder / Packed stacks, In transit circle) is **hidden on purpose**. It is parked, not removed: the code, the API (`/api/pipeline`), the tests and the wiki pages stay. (2) It is switched by one constant, `SHOW_PIPELINE` in `app/page.tsx`, now `false`. (3) **It comes back only when Kuko asks.** Until then nobody sets the flag to `true` in a commit, and nobody builds new features on it. (4) While hidden: callout ① (Store) has nothing to click, must-pass check 4 is skipped in Playwright, and the page keeps the map large with a `min-height` on `.map`.
+- **Why:** Kuko, after seeing the page with the callouts: wants to leave the pipeline out of the screen for now and decide later when it returns.
+- **To bring it back:** (a) Frontend sets `SHOW_PIPELINE = true` in `app/page.tsx` (and may drop the `.map` `min-height` if the page is tall enough again). (b) QA runs `E2E_PIPELINE=1 npm run test:e2e` to prove check 4. (c) Decide about the legend items Stack, Backorder, Store and In transit, which stay listed meanwhile (open question for Kuko).
+- **Affects pages:** 01, 09, 10, 11, 13
