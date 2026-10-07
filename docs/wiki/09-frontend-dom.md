@@ -32,6 +32,8 @@ The React (non-3D) parts of the page.
 - `useCloseOnEscape()` (in `LateList`): Escape clears `selectedRegion`. Tab and Enter work because sidebar rows are buttons.
 - `usePrefersReducedMotion()` for 3D animation; CSS drops all transitions under `prefers-reduced-motion`.
 
+**Pipeline hidden for now:** `app/page.tsx` has `SHOW_PIPELINE = false`. The pipeline's 3D scene fits itself into the `.pipeline` cell, so without the cell the stacks, labels and the Store button (callout ①) do not draw. Set it to `true` to bring them back. `.map` has a `min-height` so the map keeps its size without that column.
+
 **Waiting on 3D:** mounting `RegionCard` and `StoreButton`, the collapse animation, and the map fade (see `docs/handoffs.md`).
 
 ## Shared state (zustand)

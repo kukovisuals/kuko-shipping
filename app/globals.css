@@ -72,7 +72,7 @@ button {
 }
 
 .pipeline { grid-area: pipeline; min-height: 420px; pointer-events: none; } /* the Store button inside is pinned by 3D */
-.map { grid-area: map; pointer-events: none; }
+.map { grid-area: map; min-height: 680px; pointer-events: none; } /* keeps the map large now that the pipeline column is hidden */
 .summary { grid-area: summary; padding: 24px 32px; }
 
 /* ---- Fills: every color has a pattern too (solid / hatched / dotted) ---- */
