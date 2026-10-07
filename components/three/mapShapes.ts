@@ -4,7 +4,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 
 const SEGMENTS = 20
 
-export const dotGeometry = new CircleGeometry(1.8, 10)
+// Order-day beads (D-011): unit size, scaled per bead to its radius.
+// On time is a solid disc; late is a ring, so it differs by shape as well as colour (rule 8).
+export const beadGeometry = new CircleGeometry(1, 16)
+export const lateBeadGeometry = new RingGeometry(0.5, 1, 16)
 
 // Destination: ring with a center dot.
 export const destinationGeometry: BufferGeometry = mergeGeometries([

@@ -29,13 +29,14 @@ The map: 4 region meshes + 2 line sets (state borders, region borders) = **6 dra
 - `Scene.tsx`: orthographic camera, `frameloop="demand"`, transparent, `flat` (no tone mapping, so token colors show as written).
 
 ## Built in M8 (lanes redone to D-009)
-All from the API, all instanced or batched: **15 draw calls** (counted from the code: 4 regions, state borders, region outlines, 2 lane sets, dots, arrowheads, destinations, warehouses, slabs, circles + arrows, dotted circle).
+All from the API, all instanced or batched: **16 draw calls** (counted from the code: 4 regions, state borders, region outlines, 2 lane sets, 2 bead sets (on time, late), arrowheads, destinations, warehouses, slabs, circles + arrows, dotted circle).
 - **Regions are drawn apart** with a gap (`REGION_OFFSET` in `usMapGeometry.ts`). Each region has its own outline, so both sides of a shared edge are drawn.
 - `MapObjects.tsx` (from `/api/lanes`), per D-009:
   - **Warehouse's region (NE):** a lane is a straight spoke, warehouse → city.
   - **Every other region:** a horizontal line at the city's latitude, from a shared end `END_MARGIN` past the region's east edge, flowing west to the city. An arrowhead at the east end points west.
-  - **One lane per city** (the 51 state capitals, D-010). Shipments are laid out from the city outward: on-time first (solid line, dark dots), then late (dashed accent line, accent dots), so a lane shows its own on-time/late split. A city's marker is accent-colored when it has more late shipments than on-time ones.
-  - **No overlaps:** horizontal lanes in a region are spread so they sit at least `LANE_GAP` apart (`spread.ts`); a marker may sit slightly off its true latitude. One dot per shipment (OPEN-06): spaced `DOT_SPACING` apart, closer on a busy lane so every shipment gets a dot. Warehouses come with their own `region` from the API.
+  - **One lane per city** (the 51 state capitals, D-010), with **one bead per order day** (D-011, from `lane.days`). Day slots run along the lane from today at its start (arrowhead or warehouse) to the oldest day at the city, the same fractions on every lane, so late beads gather at the city end. The lane is solid up to the newest late day and dashed accent from there to the city. On time = ink disc, late = accent ring. A city's marker is accent-colored when it has more late shipments than on-time ones.
+  - **Bead size:** area grows with that day's shipments. Full size (`BEAD_MAX`) is a busy day, the 90th-percentile day on the map (`BUSY_DAY`); bigger days are capped there, and no bead is smaller than `BEAD_MIN`. On a short lane (NE spokes, coast states) beads shrink to fit their slot so neighbours never overlap.
+  - **No overlaps:** horizontal lanes in a region are spread so they sit at least `LANE_GAP` apart (`spread.ts`); a marker may sit slightly off its true latitude. Warehouses come with their own `region` from the API.
   - Lanes are batched, not one drei `<Line>` each, which resolves OPEN-11.
 - `Pipeline.tsx` + `pipelineLayout.ts` (from `/api/pipeline`): stacks of thin slabs, one per region per stage. Every stack shares one scale, so height is proportional to count. Store and In transit circles, and the flow lines (D-010): Store → Ordered, Ordered → Packed, Ordered → Backorder ("no stock"), Backorder → Packed ("restocked"), Packed → In transit. Labels (counts above, region names below, stage titles, notes, circle text) are the DOM pieces from `components/dom/PipelineLabels.tsx`, pinned with drei `<Html>`. It fits into the `.pipeline` column, as the map fits into `.map`.
 - `Instanced.tsx`: many copies of one shape in one draw call, each with its own color.
@@ -48,7 +49,7 @@ All from the API, all instanced or batched: **15 draw calls** (counted from the 
 |--------|----------------|-----|
 | Region shapes | Merged `ShapeGeometry`, one mesh per region | 4 draw calls instead of 50 |
 | Lanes | drei `<Line>` | Clean, resolution-independent lines |
-| Order dots | One `InstancedMesh` | Thousands of dots in a single draw call |
+| Order-day beads | Two `InstancedMesh` (disc, ring) | ~500 beads in two draw calls |
 | Destinations | One `InstancedMesh` (ring + center) | Same reason |
 | Warehouse | Single mesh, concentric rings | One object |
 | Pipeline stacks | `InstancedMesh` of thin boxes | One draw call for all stacks |
