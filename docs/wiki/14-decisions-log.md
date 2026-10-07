@@ -70,3 +70,9 @@ What was decided, when, and why. Newest at the bottom. Never edit an old entry; 
 - **Why:** Kuko, after seeing the M8 build: the first default (a straight line from the warehouse to every city) made a starburst and did not match the design. This closes OPEN-03.
 - **Replaces:** the OPEN-03 default in CLAUDE.md. Supersedes the "straight line warehouse → city" wording in page 08.
 - **Affects pages:** 01, 02, 08, 10
+
+### D-010 — Capital-city destinations, no overlapping lanes, full pipeline connections
+- **Date:** 2026-10-07
+- **Decision:** (1) Destinations are the **51 state capitals** (50 states + DC), one per state, so the map is not crowded. (2) The map draws **one lane per city** (a city's on-time and late shipments share one line: dashed and accent if any shipment is late, each dot colored by its own timing), and lanes in a region are **spread vertically so no two lines overlap**; a marker may sit slightly off its true latitude to make room. (3) The pipeline is connected: Store → Ordered; Ordered → Packed (in stock); Ordered → Backorder ("no stock"); Backorder → Packed ("restocked"); Packed → In transit. (4) Every stack carries its **region name below and its count above**; each stage has a small title (ORDERED, BACKORDER, PACKED).
+- **Why:** Kuko, after seeing M8 rework: the map was too crowded and overlapping; the stacks had no labels; Ordered was not connected to Packed.
+- **Affects pages:** 01, 06, 08, 09, 10

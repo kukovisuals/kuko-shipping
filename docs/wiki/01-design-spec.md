@@ -42,6 +42,8 @@ What every zone of the one-page design shows, and the visual rules.
 
 **Pipeline (left column)**
 - Store circle at the top. Orders flow down from it.
+- Flow lines (D-010): Store → Ordered. Ordered → Packed (orders that were in stock). Ordered → Backorder ("no stock"). Backorder → Packed ("restocked"). Packed → In transit.
+- Every stack has its region name under it and its count above it. Each stage has a small title: ORDERED, BACKORDER, PACKED.
 - ORDERED: one stack per region, with the count above each.
 - BACKORDER: one small stack per region. Arrow in labeled "no stock." Arrow out to Packed labeled "restocked."
 - PACKED: one stack per region.
@@ -54,6 +56,7 @@ What every zone of the one-page design shows, and the visual rules.
 - Lanes: lines of order dots ending at destination markers.
   - In the warehouse's region (NE): straight spokes from the warehouse to each destination.
   - In every other region: straight **horizontal** lines at the city's latitude. They run west to the destination marker from a common end just past the region's east side, with an arrowhead there pointing west.
+- Destinations are the 51 state capitals, one lane per city, and lanes never overlap (D-010). A city's on-time and late shipments share its one lane: dashed and accent if any shipment is late, each dot colored by its own timing.
 - Late lanes use the late fill (dashed, accent color).
 - Warehouse marker in NE with spokes to nearby destinations.
 
