@@ -56,12 +56,14 @@ button {
   z-index: 1;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  /* The map gets the wide column; summary and pipeline stack under the total on the right. */
+  grid-template-columns: 3fr 1fr;
+  grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
-    "header header header"
-    "pipeline map summary"
-    "legend legend legend";
+    "header header"
+    "map summary"
+    "map pipeline"
+    "legend legend";
   pointer-events: none;
 }
 
@@ -69,7 +71,7 @@ button {
   pointer-events: auto;
 }
 
-.pipeline { grid-area: pipeline; }
+.pipeline { grid-area: pipeline; min-height: 420px; }
 .map { grid-area: map; pointer-events: none; }
 .summary { grid-area: summary; padding: 24px 32px; }
 

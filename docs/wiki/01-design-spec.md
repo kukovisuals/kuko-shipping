@@ -40,7 +40,7 @@ What every zone of the one-page design shows, and the visual rules.
 - Title: "How many orders are late for delivery?"
 - TOTAL: the largest element on the page. One proportional bar under it, with counts.
 
-**Pipeline (left column)**
+**Pipeline (right column, under the summary rows)**
 - Store circle at the top. Orders flow down from it.
 - Flow lines (D-010): Store → Ordered. Ordered → Packed (orders that were in stock). Ordered → Backorder ("no stock"). Backorder → Packed ("restocked"). Packed → In transit.
 - Every stack has its region name under it and its count above it. Each stage has a small title: ORDERED, BACKORDER, PACKED.
@@ -49,7 +49,7 @@ What every zone of the one-page design shows, and the visual rules.
 - PACKED: one stack per region.
 - IN TRANSIT: one dotted circle with a count.
 
-**Map (center column)**
+**Map (wide left column, about three quarters of the width)**
 - US map split into four regions, including Alaska and Hawaii insets.
 - Each region has a card: name, total, one proportional bar, counts.
 - Regions are drawn **apart, with a gap** between them (D-009).
@@ -60,7 +60,7 @@ What every zone of the one-page design shows, and the visual rules.
 - Late lanes use the late fill (dashed, accent color).
 - Warehouse marker in NE with spokes to nearby destinations.
 
-**Summary (right column)**
+**Summary (right column, under the TOTAL)**
 - One row per region: name, proportional bar, late count.
 - Clicking a region row opens that region's late-orders list.
 - List row: order number, city, days late (e.g. "+4d").

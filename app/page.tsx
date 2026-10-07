@@ -18,12 +18,12 @@ export default function Home() {
       </div>
       <div className="grid">
         <Header />
-        <section className="pipeline" aria-label="Pipeline" />
         <section className="map" aria-label="Map" />
         <section className="summary" aria-label="Summary">
           <Sidebar />
           <LateList />
         </section>
+        <section className="pipeline" aria-label="Pipeline" />
         <Legend />
       </div>
     </main>
