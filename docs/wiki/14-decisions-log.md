@@ -1,6 +1,6 @@
 # Decisions Log
 
-> **Owner:** Shared (append-only) · **Status:** Accepted · **Last updated:** 2026-10-07
+> **Owner:** Shared (append-only) · **Status:** Accepted · **Last updated:** 2026-10-08
 
 ## Purpose
 What was decided, when, and why. Newest at the bottom. Never edit an old entry; add a new one that replaces it.
@@ -90,3 +90,16 @@ What was decided, when, and why. Newest at the bottom. Never edit an old entry; 
 - **Why:** Kuko, after seeing the page with the callouts: wants to leave the pipeline out of the screen for now and decide later when it returns.
 - **To bring it back:** (a) Frontend sets `SHOW_PIPELINE = true` in `app/page.tsx` (and may drop the `.map` `min-height` if the page is tall enough again). (b) QA runs `E2E_PIPELINE=1 npm run test:e2e` to prove check 4. (c) Decide about the legend items Stack, Backorder, Store and In transit, which stay listed meanwhile (open question for Kuko).
 - **Affects pages:** 01, 09, 10, 11, 13
+
+### D-013 — No dots for on-time orders
+- **Date:** 2026-10-08
+- **Decision:** (1) The map draws a bead **only for late order days** (accent ring, sized by that day's shipments). **On-time orders get no dot at all**, in the still map and while the weekly loop plays. On-time shipments stay in the data and the numbers (cards, totals, bars); they just have no mark on the lanes. (2) The layout still places every order day, so bead sizes and slots do not move. (3) The Legend entry is "Late order day", a ring only.
+- **Why:** Kuko, after seeing the map: dots for good orders are not relevant to the reader. The page answers "how many orders are late", so only the late ones earn a mark.
+- **Replaces:** D-011 (4), which drew on time as a solid ink disc, and the "each dot colored by its own timing" wording of D-010 (2).
+- **Affects pages:** 01, 09, 10, 11
+
+### D-014 — Dots move, as a weekly loop on a button (closes OPEN-09)
+- **Date:** 2026-10-08
+- **Decision:** (1) Late beads can move, but only when the reader presses **Play week**. The page is still by default (this replaces "No motion in v1"). (2) The loop replays Mon-Sun in 14 s: each late bead leaves its lane start, the oldest first, and slides to its resting slot, so Sunday equals the still map. (3) A play/pause button and a Mon-Sun day counter sit at the bottom-left of the map. (4) Reduced motion: no button, no loop. (5) Motion never hides the numbers (they are DOM).
+- **Why:** Kuko asked for an animation showing how the orders could move in a week. Combined with D-013, only late orders move.
+- **Affects pages:** 09, 10, 11

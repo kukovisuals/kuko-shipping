@@ -59,3 +59,5 @@ Why:     Kuko decided on-time orders get no dot at all, still or playing (D-013)
 Contract: The map draws only `lateBeadGeometry` (ring, inner radius 0.5, late color).
 
 DONE  Frontend → 3D: Legend "Late order day" now shows only the ring.
+
+DONE  Tech Lead → 3D, Frontend: D-013 (no dots for on-time orders) and D-014 (weekly loop, closes OPEN-09) are in the decisions log; wiki 01, 08, 15 and CLAUDE.md follow them.

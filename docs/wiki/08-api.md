@@ -73,7 +73,7 @@ Feeds: map lanes, order dots, destinations, warehouses.
 A lane is data about one warehouse → city route, so `points` is `[warehouse, city]`. How it is *drawn* is the map's job (D-009): a spoke when `lane.region` equals the warehouse's `region`, a horizontal line flowing west everywhere else. That is why each warehouse carries its own `region`.
 - A lane is one `(warehouse, city, timing)`. A city with both late and on-time shipments has two lanes on the same line, so a lane has one colour. Ids are readable: `lane-loc-1-or-portland-late`.
 - `shipments` is how many shipments ride the lane.
-- `days` groups those shipments by order day (UTC), newest first, and adds up to `shipments`. `ageDays` is whole days from the order day to the day of `computedAt`. The map draws one bead per day, sized by `shipments` (D-011).
+- `days` groups those shipments by order day (UTC), newest first, and adds up to `shipments`. `ageDays` is whole days from the order day to the day of `computedAt`. The map draws one bead per late day, sized by `shipments` (D-011, D-013); on-time days get none.
 - Delivered orders are left out: lanes show what is still on its way.
 
 ## GET `/api/regions/[region]/late?limit=6`

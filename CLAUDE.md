@@ -121,7 +121,7 @@ Defaults are provisional. Use them, mention them in the commit, and keep going. 
 | OPEN-06 | Dot = order or shipment? | Decided (D-011): one bead per order day per lane, area by shipment count, capped. |
 | OPEN-07 | Refresh interval | 5 minutes. |
 | OPEN-08 | Warehouse location | Placeholder: Newark, NJ (real coordinates). |
-| OPEN-09 | Dots move? | No motion in v1. |
+| OPEN-09 | Dots move? | Decided (D-014): still by default; a Play week button runs a 14 s Mon-Sun loop. Only late orders get a dot (D-013). |
 | OPEN-10 | `Location` vs `Warehouse` | Keep `Location`. |
 | OPEN-11 | Order split before shipping | Accept one assigned warehouse. |
 

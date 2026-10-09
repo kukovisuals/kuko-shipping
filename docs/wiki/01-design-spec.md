@@ -53,10 +53,10 @@ What every zone of the one-page design shows, and the visual rules.
 - US map split into four regions, including Alaska and Hawaii insets.
 - Each region has a card: name, total, one proportional bar, counts.
 - Regions are drawn **apart, with a gap** between them (D-009).
-- Lanes: lines of order dots ending at destination markers.
+- Lanes: lines with a ring for each late order day, ending at destination markers. On-time orders get no dot (D-013).
   - In the warehouse's region (NE): straight spokes from the warehouse to each destination.
   - In every other region: straight **horizontal** lines at the city's latitude. They run west to the destination marker from a common end just past the region's east side, with an arrowhead there pointing west.
-- Destinations are the 51 state capitals, one lane per city, and lanes never overlap (D-010). A city's on-time and late shipments share its one lane: dashed and accent if any shipment is late, each dot colored by its own timing.
+- Destinations are the 51 state capitals, one lane per city, and lanes never overlap (D-010). A city's on-time and late shipments share its one lane: dashed and accent from the newest late day to the city. Only late days carry a ring (D-013).
 - Late lanes use the late fill (dashed, accent color).
 - Warehouse marker in NE with spokes to nearby destinations.
 
@@ -67,7 +67,7 @@ What every zone of the one-page design shows, and the visual rules.
 - List shows 6 rows, then "+ N more."
 
 **Legend (footer)**
-- On time, Late, In transit, Stack, Backorder, Store, Order day (solid disc = on time, ring = late, with a note that size = orders that day), Destination, Warehouse.
+- On time, Late, In transit, Stack, Backorder, Store, Late order day (a ring, with a note that size = orders that day; there is no on-time dot, D-013), Destination, Warehouse.
 
 ## Visual rules
 
