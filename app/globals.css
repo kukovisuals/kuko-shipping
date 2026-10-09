@@ -72,7 +72,7 @@ button {
 }
 
 .pipeline { grid-area: pipeline; min-height: 420px; pointer-events: none; } /* the Store button inside is pinned by 3D */
-.map { grid-area: map; min-height: 680px; pointer-events: none; } /* keeps the map large now that the pipeline column is hidden */
+.map { grid-area: map; position: relative; min-height: 680px; pointer-events: none; } /* keeps the map large now that the pipeline column is hidden */
 .summary { grid-area: summary; padding: 24px 32px; }
 
 /* ---- Fills: every color has a pattern too (solid / hatched / dotted) ---- */
@@ -329,6 +329,48 @@ button {
 .theme-toggle button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--bg);
+}
+
+/* ---- Week replay (play/pause + day counter, bottom-left of the map) ---- */
+.week-control {
+  position: absolute;
+  left: 32px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: auto;
+}
+
+.week-control button {
+  padding: 5px 14px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.week-control button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.week-days {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.week-days li[aria-current="step"] {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 /* ---- Pipeline labels (placed by the 3D scene) ---- */

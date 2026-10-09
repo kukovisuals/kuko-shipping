@@ -16,6 +16,7 @@ The React (non-3D) parts of the page.
 | `LateList` | Order number, city, "+Nd", then "+ N more" | `/api/regions/[region]/late` |
 | `PipelineLabels` | Stage names and counts beside the 3D stacks | `/api/pipeline` |
 | `Legend` | Every symbol and fill on the page | Static |
+| `WeekControl` | "Play week" / "Pause" button and a Mon-Sun day counter, bottom-left of the map | Store: `weekPlaying`, `weekDay` |
 
 ![React components placed on the page](img/fig-components.svg)
 
@@ -34,6 +35,9 @@ The React (non-3D) parts of the page.
 
 **Pipeline hidden for now:** `app/page.tsx` has `SHOW_PIPELINE = false`. The pipeline's 3D scene fits itself into the `.pipeline` cell, so without the cell the stacks, labels and the Store button (callout ①) do not draw. Set it to `true` to bring them back. `.map` has a `min-height` so the map keeps its size without that column.
 
+## Week replay (design update)
+`WeekControl` flips `weekPlaying` and highlights `weekDay` while playing. It starts paused, so the page is still by default, and it is not rendered at all with reduced motion. The clock lives in 3D (wiki 11); the DOM never moves anything.
+
 **Waiting on 3D:** mounting `RegionCard` and `StoreButton`, the collapse animation, and the map fade (see `docs/handoffs.md`).
 
 ## Shared state (zustand)
@@ -41,6 +45,8 @@ The React (non-3D) parts of the page.
 {
   selectedRegion: 'WEST' | 'MIDWEST' | 'NE' | 'SOUTH' | null
   pipelineCollapsed: boolean
+  weekPlaying: boolean   // DOM writes (button); 3D reads
+  weekDay: number        // 0-6 (Mon-Sun); 3D writes when the day changes; DOM reads
 }
 ```
 DOM and 3D both read this store. That's how a sidebar click can highlight a region on the map.

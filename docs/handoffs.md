@@ -41,3 +41,10 @@ HANDOFF  from: 3D  to: Tech Lead
 Need:    Log a decision in docs/wiki/14 (D-013): on-time order-day beads are no longer drawn; only late beads show. It narrows D-011 (4), which had on time = solid disc.
 Why:     Decision log is Tech Lead's page; Kuko asked for this change on branch design-updates.
 Contract: Layout (`laneLayout`) still places every day; only rendering in MapObjects.tsx skips on-time beads.
+
+DONE  Frontend → 3D: week replay DOM half. `WeekControl` (bottom-left of the map) toggles `weekPlaying` and shows `weekDay`; store has `weekPlaying`, `weekDay`, `toggleWeekPlaying()`, `setWeekDay(n)`.
+
+HANDOFF  from: Frontend  to: 3D
+Need:    Run the weekly loop in the scene: while `weekPlaying`, animate order-day beads along their lanes, and call `setWeekDay(0..6)` whenever the day changes.
+Why:     The button and counter are done but nothing moves yet.
+Contract: `useStore` from lib/store (`weekPlaying`, `weekDay`, `setWeekDay`). With reduced motion, `WeekControl` does not render, so nothing can start the loop.

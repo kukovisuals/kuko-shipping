@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useStore } from './store'
 
-const reset = () => useStore.setState({ selectedRegion: null, pipelineCollapsed: false })
+const reset = () => useStore.setState({ selectedRegion: null, pipelineCollapsed: false, weekPlaying: false, weekDay: 0 })
 
 describe('store', () => {
   beforeEach(reset)
@@ -27,5 +27,14 @@ describe('store', () => {
     expect(useStore.getState().pipelineCollapsed).toBe(true)
     useStore.getState().togglePipelineCollapsed()
     expect(useStore.getState().pipelineCollapsed).toBe(false)
+  })
+
+  it('plays and pauses the weekly loop, and keeps the day it reports', () => {
+    useStore.getState().toggleWeekPlaying()
+    expect(useStore.getState().weekPlaying).toBe(true)
+    useStore.getState().setWeekDay(3)
+    useStore.getState().toggleWeekPlaying()
+    expect(useStore.getState().weekPlaying).toBe(false)
+    expect(useStore.getState().weekDay).toBe(3)
   })
 })

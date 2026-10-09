@@ -3,6 +3,7 @@ import Header from "@/components/dom/Header";
 import Sidebar from "@/components/dom/Sidebar";
 import LateList from "@/components/dom/LateList";
 import Legend from "@/components/dom/Legend";
+import WeekControl from "@/components/dom/WeekControl";
 import { tokensCss } from "@/lib/tokens";
 
 // Apply a saved theme before first paint so there is no flash.
@@ -22,7 +23,9 @@ export default function Home() {
       </div>
       <div className="grid">
         <Header />
-        <section className="map" aria-label="Map" />
+        <section className="map" aria-label="Map">
+          <WeekControl />
+        </section>
         <section className="summary" aria-label="Summary">
           <Sidebar />
           <LateList />
