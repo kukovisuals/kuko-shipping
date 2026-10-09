@@ -44,9 +44,9 @@ function paint(g: BufferGeometry, lines: [P, P, Region][], colorOf: (region: Reg
 
 // Lanes, order-day beads, destinations, warehouses. Where they go is laneLayout's job (D-009, D-010, D-011);
 // this turns it into geometry and colors.
-// Still map: only late days get a bead; on-time days are the plain lane. The weekly loop (WeekBeads) brings the
-// on-time beads back while it plays. The layout places every day, so sizes and slots never shift.
-// Draw calls: 2 line sets + 2 bead sets + arrowheads + destinations + warehouses = 7.
+// Only late days get a bead; on-time days are the plain lane, in the still map and in the weekly loop (D-013).
+// The layout still places every day, so sizes and slots never shift.
+// Draw calls: 2 line sets + 1 bead set + arrowheads + destinations + warehouses = 6.
 export default function MapObjects() {
   const { data } = useLanes()
   const colors = useThemeColors()
@@ -73,7 +73,7 @@ export default function MapObjects() {
     if (!layout) return null
     const ink = (late: boolean, region: Region) => tint(late ? colors.late : colors.ink, region)
     return {
-      beads: layout.beads.map((b) => ({ ...b, color: ink(b.late, b.region) })),
+      beads: layout.beads.filter((b) => b.late).map((b) => ({ ...b, color: ink(true, b.region) })),
       arrows: layout.lanes.filter((l) => !l.spoke).map((l): Item => ({ x: l.from[0], y: l.from[1], color: ink(l.late > 0, l.region) })),
       destinations: layout.lanes.map((l): Item => ({ x: l.to[0], y: l.to[1], color: ink(l.late > l.onTime, l.region) })),
       warehouses: layout.warehouses.map(({ p: [x, y], region }): Item => ({ x, y, color: ink(false, region) })),
@@ -92,7 +92,7 @@ export default function MapObjects() {
         <lineDashedMaterial vertexColors dashSize={6} gapSize={4} transparent opacity={0.9} depthWrite={false} />
       </lineSegments>
       <Instanced items={built.arrows} geometry={arrowGeometry} z={0.35} />
-      <WeekBeads beads={built.beads} bg={colors.bg} />
+      <WeekBeads beads={built.beads} />
       <Instanced items={built.destinations} geometry={destinationGeometry} z={0.5} />
       <Instanced items={built.warehouses} geometry={warehouseGeometry} z={0.6} />
     </>

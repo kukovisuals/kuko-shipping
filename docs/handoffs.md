@@ -52,3 +52,8 @@ Contract: `useStore` from lib/store (`weekPlaying`, `weekDay`, `setWeekDay`). Wi
 DONE  3D → Frontend: weekly loop runs (`WeekBeads`). The earlier request to drop the on-time disc from the Legend's "Order day" is withdrawn: the disc is drawn again while the loop plays, so the legend is correct as it is.
 
 DONE  3D → Tech Lead: please log D-014 in docs/wiki/14: OPEN-09 is decided by Kuko: dots move, only as a play/pause weekly loop (off by default; wiki 11). D-013 (late-only still map) still applies to the still view.
+
+HANDOFF  from: 3D  to: Frontend
+Need:    In components/dom/Legend.tsx, "Order day" shows only the late ring (drop the solid disc), and fix the comment that mentions `beadGeometry` (it is gone).
+Why:     Kuko decided on-time orders get no dot at all, still or playing (D-013). The weekly loop now moves only late rings, so the disc no longer appears anywhere on the map. This replaces the earlier note saying the legend was correct as is.
+Contract: The map draws only `lateBeadGeometry` (ring, inner radius 0.5, late color).

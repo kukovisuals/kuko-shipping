@@ -2,35 +2,28 @@ import { describe, expect, it } from 'vitest'
 import { advance, beadFrame, dayOf, DAY_SECONDS, HOLD, WEEK } from './weekClock'
 
 describe('weekClock', () => {
-  const ages = [0, 3, 7, 10, 14]
+  const ages = [8, 10, 12, 14]
+  const frame = (age: number, t: number) => beadFrame(age, 8, 14, t)
 
-  it('ends exactly on the still map: late beads at rest, on-time beads gone', () => {
-    for (const age of ages) {
-      expect(beadFrame(age, 14, true, WEEK)).toEqual({ along: 1, scale: 1, fade: 0 })
-      expect(beadFrame(age, 14, false, WEEK).scale).toBe(0)
-    }
+  it('ends exactly on the still map: every late bead at rest in its slot', () => {
+    for (const age of ages) expect(frame(age, WEEK)).toEqual({ along: 1, scale: 1 })
   })
 
-  it('starts empty: nothing has left yet except the oldest day', () => {
-    expect(beadFrame(0, 14, true, 0).scale).toBe(0)
-    expect(beadFrame(14, 14, true, 0).scale).toBe(1)
+  it('starts with only the oldest day on its way', () => {
+    expect(frame(14, 0).scale).toBe(1)
+    expect(frame(8, 0).scale).toBe(0)
   })
 
   it('older orders leave before newer ones', () => {
     const t = 3
-    expect(beadFrame(14, 14, true, t).along).toBeGreaterThan(beadFrame(7, 14, true, t).along)
-    expect(beadFrame(7, 14, true, t).along).toBeGreaterThan(beadFrame(0, 14, true, t).along)
-  })
-
-  it('an on-time bead fades after it arrives, a late bead never does', () => {
-    expect(beadFrame(14, 14, false, 3).fade).toBeGreaterThan(0)
-    expect(beadFrame(14, 14, true, 3).fade).toBe(0)
+    expect(frame(14, t).along).toBeGreaterThan(frame(11, t).along)
+    expect(frame(11, t).along).toBeGreaterThan(frame(8, t).along)
   })
 
   it('moves forward only, and wraps after the hold', () => {
     let last = -1
     for (let t = 0; t <= WEEK; t += 0.1) {
-      const a = beadFrame(5, 14, true, t).along
+      const a = frame(10, t).along
       expect(a).toBeGreaterThanOrEqual(last)
       last = a
     }
@@ -42,7 +35,7 @@ describe('weekClock', () => {
     expect([0, 0.9, 1, 6.5, WEEK, WEEK + HOLD].map(dayOf)).toEqual([0, 0, 1, 6, 6, 6])
   })
 
-  it('copes with a lane set that has only today', () => {
-    expect(beadFrame(0, 0, true, 0)).toEqual({ along: 0, scale: 1, fade: 0 })
+  it('copes with every late bead being the same age', () => {
+    expect(beadFrame(9, 9, 9, 0)).toEqual({ along: 0, scale: 1 })
   })
 })
