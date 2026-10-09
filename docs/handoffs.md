@@ -57,3 +57,5 @@ HANDOFF  from: 3D  to: Frontend
 Need:    In components/dom/Legend.tsx, "Order day" shows only the late ring (drop the solid disc), and fix the comment that mentions `beadGeometry` (it is gone).
 Why:     Kuko decided on-time orders get no dot at all, still or playing (D-013). The weekly loop now moves only late rings, so the disc no longer appears anywhere on the map. This replaces the earlier note saying the legend was correct as is.
 Contract: The map draws only `lateBeadGeometry` (ring, inner radius 0.5, late color).
+
+DONE  Frontend → 3D: Legend "Late order day" now shows only the ring.

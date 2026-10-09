@@ -42,13 +42,12 @@ const ITEMS: { label: string; symbol: ReactNode; note?: string }[] = [
     ),
   },
   {
-    // Shapes match mapShapes.ts: beadGeometry (disc) and lateBeadGeometry (ring, inner radius 0.5).
-    label: 'Order day',
+    // Matches mapShapes.ts: lateBeadGeometry (ring, inner radius 0.5). On-time orders get no dot (D-013).
+    label: 'Late order day',
     note: 'size = orders that day',
     symbol: (
-      <svg width="44" height="16" viewBox="0 0 44 16" aria-hidden="true">
-        <circle cx="8" cy="8" r="6" fill="currentColor" />
-        <circle cx="30" cy="8" r="5.25" fill="none" stroke="var(--late)" strokeWidth="3.5" />
+      <svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true">
+        <circle cx="11" cy="8" r="5.25" fill="none" stroke="var(--late)" strokeWidth="3.5" />
       </svg>
     ),
   },

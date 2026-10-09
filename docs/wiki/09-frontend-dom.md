@@ -15,7 +15,7 @@ The React (non-3D) parts of the page.
 | `Sidebar` | One row per region: name, bar, late count | `/api/summary` → `regions` |
 | `LateList` | Order number, city, "+Nd", then "+ N more" | `/api/regions/[region]/late` |
 | `PipelineLabels` | Stage names and counts beside the 3D stacks | `/api/pipeline` |
-| `Legend` | Every symbol and fill on the page | Static |
+| `Legend` | Every symbol and fill on the page. "Late order day" is the accent ring (size = orders that day); there is no symbol for on-time orders because the map draws none (D-013) | Static |
 | `WeekControl` | "Play week" / "Pause" button and a Mon-Sun day counter, bottom-left of the map | Store: `weekPlaying`, `weekDay` |
 
 ![React components placed on the page](img/fig-components.svg)
