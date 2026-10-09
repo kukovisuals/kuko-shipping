@@ -6,7 +6,7 @@ import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute } from '
 import type { Region } from '@/lib/regions'
 import { useLanes } from '@/lib/hooks/useLanes'
 import Instanced, { type Item } from './Instanced'
-import { arrowGeometry, beadGeometry, destinationGeometry, lateBeadGeometry, warehouseGeometry } from './mapShapes'
+import { arrowGeometry, destinationGeometry, lateBeadGeometry, warehouseGeometry } from './mapShapes'
 import { laneLayout } from './laneLayout'
 import { usMap } from './usMapGeometry'
 import { dimColor, useRegionDims } from './useRegionDims'
@@ -43,7 +43,8 @@ function paint(g: BufferGeometry, lines: [P, P, Region][], colorOf: (region: Reg
 
 // Lanes, order-day beads, destinations, warehouses. Where they go is laneLayout's job (D-009, D-010, D-011);
 // this turns it into geometry and colors.
-// Draw calls: 2 line sets + 2 bead sets + arrowheads + destinations + warehouses = 7.
+// Only late days get a bead; on-time days are the plain lane. The layout still places every day, so sizes and slots don't shift.
+// Draw calls: 2 line sets + 1 bead set + arrowheads + destinations + warehouses = 6.
 export default function MapObjects() {
   const { data } = useLanes()
   const colors = useThemeColors()
@@ -69,10 +70,8 @@ export default function MapObjects() {
   const built = useMemo(() => {
     if (!layout) return null
     const ink = (late: boolean, region: Region) => tint(late ? colors.late : colors.ink, region)
-    const beads = layout.beads.map((b) => ({ x: b.x, y: b.y, sx: b.r, sy: b.r, color: ink(b.late, b.region) }))
     return {
-      beads: beads.filter((_, i) => !layout.beads[i].late),
-      lateBeads: beads.filter((_, i) => layout.beads[i].late),
+      lateBeads: layout.beads.filter((b) => b.late).map((b) => ({ x: b.x, y: b.y, sx: b.r, sy: b.r, color: ink(true, b.region) })),
       arrows: layout.lanes.filter((l) => !l.spoke).map((l): Item => ({ x: l.from[0], y: l.from[1], color: ink(l.late > 0, l.region) })),
       destinations: layout.lanes.map((l): Item => ({ x: l.to[0], y: l.to[1], color: ink(l.late > l.onTime, l.region) })),
       warehouses: layout.warehouses.map(({ p: [x, y], region }): Item => ({ x, y, color: ink(false, region) })),
@@ -91,7 +90,6 @@ export default function MapObjects() {
         <lineDashedMaterial vertexColors dashSize={6} gapSize={4} transparent opacity={0.9} depthWrite={false} />
       </lineSegments>
       <Instanced items={built.arrows} geometry={arrowGeometry} z={0.35} />
-      <Instanced items={built.beads} geometry={beadGeometry} z={0.4} />
       <Instanced items={built.lateBeads} geometry={lateBeadGeometry} z={0.4} />
       <Instanced items={built.destinations} geometry={destinationGeometry} z={0.5} />
       <Instanced items={built.warehouses} geometry={warehouseGeometry} z={0.6} />
