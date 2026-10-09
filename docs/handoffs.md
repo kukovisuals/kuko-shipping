@@ -48,3 +48,7 @@ HANDOFF  from: Frontend  to: 3D
 Need:    Run the weekly loop in the scene: while `weekPlaying`, animate order-day beads along their lanes, and call `setWeekDay(0..6)` whenever the day changes.
 Why:     The button and counter are done but nothing moves yet.
 Contract: `useStore` from lib/store (`weekPlaying`, `weekDay`, `setWeekDay`). With reduced motion, `WeekControl` does not render, so nothing can start the loop.
+
+DONE  3D → Frontend: weekly loop runs (`WeekBeads`). The earlier request to drop the on-time disc from the Legend's "Order day" is withdrawn: the disc is drawn again while the loop plays, so the legend is correct as it is.
+
+DONE  3D → Tech Lead: please log D-014 in docs/wiki/14: OPEN-09 is decided by Kuko: dots move, only as a play/pause weekly loop (off by default; wiki 11). D-013 (late-only still map) still applies to the still view.

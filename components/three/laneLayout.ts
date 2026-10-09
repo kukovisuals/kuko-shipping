@@ -39,7 +39,8 @@ export type LaneLayout = {
   // Segments carry their region, so the map can fade a region's lanes (callout 2).
   solid: [Pt, Pt, Region][]
   dashed: [Pt, Pt, Region][]
-  beads: { x: number; y: number; r: number; late: boolean; region: Region }[]
+  // x, y = the day's resting slot; x0, y0 = the lane start it leaves from in the weekly loop.
+  beads: { x: number; y: number; x0: number; y0: number; age: number; r: number; late: boolean; region: Region }[]
   warehouses: { p: Pt; region: Region }[]
 }
 
@@ -145,7 +146,7 @@ export function laneLayout(data: Lanes, map: Pick<UsMap, 'eastEdge' | 'rings'>):
 
     for (const d of stop.days) {
       const [x, y] = at(d.ageDays)
-      out.beads.push({ x, y, r: Math.min(radius(d.shipments), Math.max(room, BEAD_MIN)), late: d.late, region: stop.region })
+      out.beads.push({ x, y, x0: from[0], y0: from[1], age: d.ageDays, r: Math.min(radius(d.shipments), Math.max(room, BEAD_MIN)), late: d.late, region: stop.region })
     }
   }
   return out
